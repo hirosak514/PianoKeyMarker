@@ -1,0 +1,1 @@
+{"max_seq_len": 608, "eos_token": 2, "bos_token": 1, "decoder_depth": 8, "decoder_heads": 8, "decoder_dim": 512}

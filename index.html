@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>楽譜→鍵盤マーカー</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><img src="icons/icon32.png" alt=""><span>鍵盤マーカー</span></div>
+    <input id="title" class="title-input" placeholder="曲名" aria-label="曲名">
+    <div class="spacer"></div>
+    <div class="btn-group">
+      <button id="btnUndo" title="元に戻す (Ctrl+Z)">↶</button>
+      <button id="btnRedo" title="やり直す (Ctrl+Shift+Z)">↷</button>
+    </div>
+    <div class="btn-group">
+      <button id="btnNew">新規</button>
+      <button id="btnLibrary">ライブラリ</button>
+      <button id="btnSave" class="accent">保存</button>
+      <button id="btnSaveAs">別名で保存</button>
+    </div>
+    <div class="btn-group">
+      <button id="btnExport" title="JSONファイルとして書き出し">書き出し</button>
+      <label class="btn" title="楽譜ファイルを読み込み（MusicXML・MXL・MIDI・このアプリで書き出したJSON）">読み込み<input type="file" id="importFile" accept=".json,.musicxml,.xml,.mxl,.mid,.midi" hidden></label>
+    </div>
+    <button id="btnHelp" title="使い方・準備">？ 使い方</button>
+    <button id="btnSettings" title="設定">⚙ 設定</button>
+  </header>
+
+  <main class="workspace">
+    <section class="pane image-pane">
+      <div class="pane-head">
+        <div id="pageTabs" class="page-tabs" title="ドラッグでページの順番を入れ替え"></div>
+        <label class="btn small" title="画像ファイルを選択（複数可・iPhoneのHEICも可）">＋ 画像<input type="file" id="imgFile" accept="image/*,.heic,.heif" multiple hidden></label>
+        <button id="btnPhone" class="small" title="スマホで撮った写真をQRコード経由で受け取る">📱 スマホから</button>
+        <button id="btnPaste" class="small" title="クリップボードの画像を貼り付け（Ctrl+V でも可）">📋 貼り付け</button>
+        <button id="btnPhoto" class="small" title="傾き・台形のゆがみ・影を補正（スマホ写真向け）" disabled>✎ 写真補正</button>
+        <div class="spacer"></div>
+        <div class="btn-group small">
+          <button id="zoomOut" title="縮小">−</button>
+          <button id="zoomFit" title="幅に合わせる">幅</button>
+          <button id="zoomIn" title="拡大">＋</button>
+        </div>
+      </div>
+      <div id="imgView" class="img-view">
+        <div id="dropHint" class="drop-hint">
+          <div class="drop-icon">🎼</div>
+          <p><b>楽譜の画像をここにドロップ</b>（複数枚まとめてOK）</p>
+          <p>「＋ 画像」でファイル選択 ／ 「📋 貼り付け」または Ctrl+V</p>
+          <p class="muted">Webページ上の画像は、画像をこの画面へドラッグするか、コピーして貼り付け</p>
+          <div class="phone-guide">
+            <b>📱 スマホで撮った楽譜を使うには</b>
+            <ul>
+              <li><b>いちばん簡単</b>：「📱 スマホから」でQRコードを表示 → スマホで読み取って撮影・送信（アカウント登録・事前準備は不要）</li>
+              <li><b>iPhone + Mac</b>：写真を「コピー」→ Macで Cmd+V（共有クリップボード）／AirDropで送ってドロップ</li>
+              <li><b>Android + Windows</b>：「スマートフォン連携」や Quick Share で送ってドロップ</li>
+              <li><b>どの組み合わせでも</b>：Googleフォト等のWeb版を別タブで開き、写真をここへドラッグ</li>
+            </ul>
+            <span class="muted">iPhoneのHEIC形式もそのまま読み込めます。撮った写真は「✎ 写真補正」で傾き・影を直すと読み取り精度が上がります。</span>
+          </div>
+        </div>
+        <div id="imgWrap" class="img-wrap" hidden><img id="imgEl" alt="楽譜画像"><div id="imgOverlay" class="img-overlay"></div></div>
+      </div>
+      <div class="analyze-bar">
+        <select id="aiProvider" aria-label="AIの種類"></select>
+        <span id="aiModel" class="model-chip"></span>
+        <span id="engineChip" class="model-chip engine-chip" hidden></span>
+        <button id="btnAnalyze" title="表示中のページだけを解析（そのページの小節を置き換え）">このページを解析</button>
+        <button id="btnAnalyzeAll" class="primary" title="すべてのページを順番に解析して1曲につなげる">全ページを解析して1曲に</button>
+        <button id="btnAbort" hidden>中止</button>
+        <span id="aiStatus" class="ai-status"></span>
+      </div>
+    </section>
+
+    <section class="pane editor-pane">
+      <div class="meta">
+        <label>テンポ ♩=<input id="bpm" type="number" min="20" max="300" step="1"></label>
+        <label>拍子 <input id="timeSig" size="4" placeholder="4/4"></label>
+        <label title="AIが調号を読み間違えたときはここで直すと、すべての音が計算し直されます">調号 <select id="keyFifths"></select></label>
+        <span id="stats" class="muted"></span>
+        <span id="suspectNav"></span>
+      </div>
+      <div id="measures" class="measures" tabindex="-1"></div>
+      <div id="detail" class="detail"></div>
+    </section>
+  </main>
+
+  <footer class="dock">
+    <div id="timeline" class="timeline"></div>
+    <div class="transport">
+      <div class="tp-group">
+        <button id="btnPrevBar" title="前の小節">⏮</button>
+        <button id="btnPlay" class="play" title="再生 / 一時停止 (Space)">▶</button>
+        <button id="btnStop" title="停止して先頭へ">⏹</button>
+        <button id="btnNextBar" title="次の小節">⏭</button>
+        <div id="posDisplay" class="pos">小節 1 / 1</div>
+      </div>
+      <div class="tp-group">
+        <label class="speed">速度
+          <input id="speed" type="range" min="25" max="200" step="5" value="100">
+          <span id="speedVal">100%</span>
+        </label>
+      </div>
+      <div class="tp-group">
+        <label class="chk"><input type="checkbox" id="loopOn"> ループ</label>
+        <input id="loopA" type="number" min="1" value="1" class="num" aria-label="ループ開始小節">
+        <span>〜</span>
+        <input id="loopB" type="number" min="1" value="1" class="num" aria-label="ループ終了小節">
+        <span>小節</span>
+        <button id="btnLoopSel" class="small" title="選択中の小節をループ範囲に">選択小節</button>
+      </div>
+      <div class="tp-group">
+        <label class="chk"><input type="checkbox" id="stepOn"> ステップ</label>
+        <input id="stepN" type="number" min="1" value="1" class="num" aria-label="一時停止する小節数">
+        <span>小節ごとに停止</span>
+      </div>
+      <div class="tp-group">
+        <select id="hands" aria-label="鳴らす手">
+          <option value="both">両手の音</option>
+          <option value="R">右手の音のみ</option>
+          <option value="L">左手の音のみ</option>
+        </select>
+        <label class="vol" title="音量">🔊<input id="volume" type="range" min="0" max="1" step="0.05"></label>
+      </div>
+    </div>
+    <div class="kb-bar">
+      <div class="legend">
+        <span class="lg R">右手</span><span class="lg L">左手</span><span class="lg RL">両手</span><span class="lg next">次の音</span>
+      </div>
+      <label class="chk"><input type="checkbox" id="showNext"> 次の音を表示</label>
+      <label class="chk"><input type="checkbox" id="fitRange"> 曲の音域に合わせて拡大</label>
+      <button id="btnKbPos" class="small" title="鍵盤と再生操作を画面の上／下に移動">⇅ 鍵盤を上へ</button>
+      <div class="spacer"></div>
+      <label class="chk"><input type="checkbox" id="editKeys" checked> 鍵盤クリックで音符を編集</label>
+      <div class="hand-toggle" role="radiogroup" aria-label="入力する手">
+        <button id="handR" class="on" data-hand="R">右手</button>
+        <button id="handL" data-hand="L">左手</button>
+      </div>
+    </div>
+    <div id="keyboard" class="keyboard"></div>
+  </footer>
+
+  <dialog id="dlgSettings" class="dlg">
+    <form method="dialog">
+      <h2>設定</h2>
+      <p class="muted">APIキーはこのパソコンのブラウザ内にだけ保存され、選んだAIの公式APIへの送信にのみ使われます。</p>
+      <div id="providerSettings"></div>
+      <h3>📱 スマホ連携（WebRTC・サーバー保存なし）</h3>
+      <div id="relaySettings"></div>
+      <h3>読み取り</h3>
+      <label class="row chk"><input type="checkbox" id="optAutoFix"> 写真を自動補正する（傾き・ページの湾曲・影）</label>
+      <label class="row chk"><input type="checkbox" id="splitSystems"> 段ごとに切り分けて拡大してから読み取る（推奨）</label>
+      <label class="row chk sub"><input type="checkbox" id="optOverlay"> 小節番号と五線の目盛りを描き込んでから送る（推奨）</label>
+      <p class="muted opt-note">段や小節線を見つけられない画像は、ページ全体で読み取ります。</p>
+      <h4>さらに精度を上げる（AIの利用料が増えます）</h4>
+      <label class="row chk"><input type="checkbox" id="optVote"> 2回読み取って照合する（約2倍）</label>
+      <label class="row sub">2回目に使うAI <select id="optVoteWith"></select></label>
+      <label class="row chk"><input type="checkbox" id="optReview"> 読み取り結果を五線譜に描き直し、元の画像と見比べて直させる（約2倍）</label>
+      <h4>楽譜読み取り専用ソフト（無料・精度は homr が断然おすすめ）</h4>
+      <div class="row"><button type="button" id="btnOpenSetup" class="small">homr の準備画面を開く</button><span class="hint muted">インストールの状態確認・インストールはここから</span></div>
+      <label class="row">エンジン <select id="optEngineName">
+        <option value="homr">homr（いちばんおすすめ・写真にも強い）</option>
+        <option value="audiveris">Audiveris（スキャン・印刷楽譜向け）</option>
+        <option value="oemer">oemer</option>
+        <option value="browser">ブラウザ内で実行（インストール不要・サーバー不要・簡易版・時間がかかります）</option>
+      </select></label>
+      <label class="row">使い方 <select id="optEngine">
+        <option value="auto">自動（補助プログラムが動いていれば専用ソフト、なければAI）</option>
+        <option value="off">使わない（AIだけで読む）</option>
+        <option value="compare">AIの結果と照合する</option>
+        <option value="only">専用ソフトだけで読む（AI・APIキー不要）</option>
+      </select></label>
+      <div class="row" id="engineUrlRow"><span>補助プログラム</span><input id="optEngineUrl" size="26"> <button type="button" id="btnEngineTest" class="small">接続テスト</button></div>
+      <p class="muted opt-note" id="browserEngineNote" hidden>「ブラウザ内で実行」は、インストールや補助プログラムが不要な代わりに、初回に約160MBのモデルをダウンロードし、1ページの解析に数分かかります（拍子記号などは簡易推定です）。</p>
+      <div class="row hint" id="engineStatus"></div>
+      <h3>表示</h3>
+      <label class="row">鍵盤の位置
+        <select id="kbPosition">
+          <option value="bottom">画面の下（標準）</option>
+          <option value="top">画面の上</option>
+        </select>
+      </label>
+      <label class="row">音名の表記
+        <select id="labelMode">
+          <option value="en">C D E（英語）</option>
+          <option value="ja">ド レ ミ（日本語）</option>
+        </select>
+      </label>
+      <div class="dlg-actions">
+        <button value="close" class="primary">閉じる</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlgHelp" class="dlg wide help">
+    <form method="dialog">
+      <h2>使い方と準備</h2>
+      <p class="web-only">このアプリは <b>このHTMLファイル1つ</b> で動きます。Chrome・Edge でファイルを開くだけで使えます（インストール不要）。作った楽譜や設定はこのブラウザの中に保存されます。</p>
+      <p class="desktop-only">作った楽譜や設定はこのPCの中（このアプリ専用の保存場所）に保存されます。</p>
+
+      <h3>① 楽譜を読み取る方法を1つ用意する</h3>
+      <p class="su-reco-inline">🎯 <b>楽譜の読み取り精度は homr が断然おすすめです。</b>テストでは、スマホで撮った楽譜写真でも104音すべてを正しく読み取りました（AIは調号や音の高さを読み違えやすい）。無料・APIキー不要です。</p>
+      <p><b>A. 楽譜読み取り専用ソフト homr（いちばんおすすめ・無料・高精度）</b> <button type="button" id="btnHelpSetup" class="small primary">homr の準備画面を開く</button><br>
+      <span class="web-only">PCで小さな補助プログラムを動かしておくと、自動でそちらを使って読み取ります。</span>
+      <span class="desktop-only">補助プログラムはこのアプリが自動で起動します（<b>Python などのインストールは不要</b>）。homr 本体は、初回だけ「homr の準備画面」の <b>「homr をインストールする」</b>ボタンでインストールします（約750MB・数分〜十数分）。</span></p>
+      <div class="desktop-only helper-panel">
+        <div>補助プログラム：<b id="helperState">確認中…</b></div>
+        <pre id="helperLog" class="helper-log"></pre>
+        <button type="button" id="btnHelperRestart" class="small">↻ 再起動</button>
+        <button type="button" id="btnHelperLog" class="small">ログをファイルで開く</button>
+      </div>
+      <ol class="web-only">
+        <li>Python を入れる（初回のみ）。<a href="https://www.python.org/downloads/" target="_blank" rel="noopener">python.org</a> から <b>Python 3.13</b> をインストール。Windowsは最初の画面で <b>「Add python.exe to PATH」にチェック</b>。Macはインストール後「アプリケーション → Python 3.13 → Install Certificates.command」をダブルクリック。</li>
+        <li>下のボタンで補助プログラムを<b>同じフォルダ</b>に保存（どちらも必要です）<br>
+          <button type="button" id="dlHelperPy" class="small">⬇ pkm_omr_helper.py</button>
+          <button type="button" id="dlHelperBat" class="small">⬇ 起動用 start_helper_windows.bat（Windows）</button></li>
+        <li>Windows：保存した <code>start_helper_windows.bat</code> をダブルクリック（青い警告は「詳細情報」→「実行」）。<br>
+          Mac：ターミナルを開き <code>cd ~/Downloads</code> → <code>python3 pkm_omr_helper.py</code></li>
+        <li>初回は部品と homr の準備（約900MBのダウンロード）があります。「補助プログラムを起動しました」と出たら準備完了。<b>そのウィンドウは開いたまま</b>にします。</li>
+      </ol>
+      <p class="muted">補助プログラムはこのPCの中からの接続だけを受け付け、画像を外部に送りません。Audiveris（スキャン楽譜向け）は <a href="https://github.com/Audiveris/audiveris/releases" target="_blank" rel="noopener">GitHub の公式配布</a> から入れると自動で使えます（audiveris.com / .net は無関係の危険なサイトです）。</p>
+      <p><b>B. AI（homr を使わない場合・精度は homr より下がります）</b><br>「⚙ 設定」で Claude・ChatGPT・Gemini・Grok のどれかの APIキーを入力します（利用料はAI各社に直接かかります）。</p>
+      <p class="muted">「⚙ 設定 → 使い方」が「自動」なら、補助プログラムが動いていれば homr、なければAIで読み取ります。</p>
+
+      <h3>② 楽譜を入れて解析</h3>
+      <ul>
+        <li>画像をドロップ／「＋ 画像」／Ctrl+V で貼り付け（複数ページ可・iPhoneのHEICも可）。Webページの画像はこの画面へドラッグ。</li>
+        <li>「全ページを解析して1曲に」。黄色の ⚠ は要確認の小節です。音のチップをクリックして直せます。</li>
+        <li>MusicXML・MXL・MIDI は「読み込み」から直接開けます。</li>
+      </ul>
+
+      <h3>③ 練習</h3>
+      <p>速度・ループ（タイムラインをドラッグして範囲指定）・ステップ（N小節ごとに停止）を使えます。Space で再生／一時停止。</p>
+
+      <h3>保存について</h3>
+      <ul>
+        <li>「保存」でこのブラウザ内のライブラリに入ります。ブラウザの閲覧データを消すと消えるので、大事な楽譜は「書き出し」でファイルにも残してください。</li>
+        <li>保存先はブラウザと<b>開いた場所</b>ごとに別です（PC上のファイルとWeb公開版は別のライブラリになります）。</li>
+      </ul>
+
+      <h3>スマホから写真を送る（任意）</h3>
+      <p>PCとスマホを <b>WebRTC</b> でその場で直接つなぎ、写真はサーバーに保存されずスマホからPCへ直接送られます。アカウント登録・事前準備は不要です（最初の接続仲介だけ、無料で登録不要な公開サービスを使います）。</p>
+      <p class="web-only">このページを開いたまま「📱 スマホから」を押すだけで使えます。</p>
+      <ol class="desktop-only">
+        <li>スマホはこのアプリの画面を直接開けないため、QRコードを表示するための「スマホ用ページ」を一度だけWebに置きます。</li>
+        <li><button type="button" id="btnSavePhonePage" class="small">⬇ スマホ用ページを保存</button> で <code>index.html</code> を保存し、<b>GitHub Pages</b> などに置く：GitHubで新しい Public リポジトリ →「Upload files」でアップロード →「Settings → Pages」で Branch を main にして Save。表示されたURLを「⚙ 設定」の「スマホ用ページ」に貼り付け。</li>
+        <li>「📱 スマホから」のQRコードをスマホで読み取り、撮影して送信。</li>
+      </ol>
+      <ol class="web-only">
+        <li>「📱 スマホから」のQRコードをスマホで読み取り、撮影して送信。</li>
+      </ol>
+      <p class="muted">ページ自体に秘密は含まれません（PCのPeer IDはQRコードのURLの # 以降でだけ渡されます）。QRコードは他人に見せないでください。ネットワーク環境（厳しいファイアウォール等）によっては、まれにスマホとPCが直接つながらないことがあります。</p>
+
+      <div class="dlg-actions"><button value="close" class="primary">閉じる</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="dlgSetup" class="dlg setup">
+    <div class="su-wrap">
+      <h2>はじめての準備：楽譜読み取りソフト「homr」</h2>
+      <div class="su-reco">
+        <b>🎯 楽譜の読み取りは homr が断然おすすめです</b>
+        <ul>
+          <li><b>精度がいちばん高い</b>：テストでは、スマホで撮った楽譜写真でも <b>104音すべて</b>を正しく読み取りました。AIは調号（♯・♭）の読み落としや、音の高さの読み違いが起きやすく、直す手間が増えます。</li>
+          <li><b>無料・APIキー不要</b>：何枚読み取っても料金はかかりません。</li>
+          <li><b>楽譜はPCの外に出ません</b>：読み取りはすべてこのPCの中で行います。</li>
+        </ul>
+      </div>
+      <p id="suPendingNote" class="su-pending" hidden>⏳ 準備が終わると、自動で楽譜の読み取りを始めます。</p>
+      <p class="su-lead">下の手順どおりに進めれば、<b>数分〜十数分</b>で準備が終わります（初回の1回だけ）。</p>
+
+      <ol class="su-steps">
+        <li id="suStep1" class="su-step active">
+          <div class="su-title">補助プログラムを起動する</div>
+          <div id="suHelperOk" class="su-ok" hidden>✓ 起動しています</div>
+          <div id="suHelperDesk" hidden>
+            <p id="suHelperDeskMsg">⏳ 補助プログラムを起動しています…</p>
+            <button type="button" id="suHelperRestart" class="small" hidden>↻ 補助プログラムを再起動</button>
+          </div>
+          <div id="suHelperWeb" hidden>
+            <p>Webアプリ版では、PCで「補助プログラム」を起動しておく必要があります。</p>
+            <ol class="su-sub">
+              <li><a href="https://www.python.org/downloads/" target="_blank" rel="noopener">python.org</a> から <b>Python</b> をインストール（初回だけ）。Windowsは最初の画面で <b>「Add python.exe to PATH」にチェック</b>を入れてから「Install Now」。</li>
+              <li>補助プログラムを<b>同じフォルダ</b>に保存：
+                <button type="button" id="suDlPy" class="small">⬇ pkm_omr_helper.py</button>
+                <button type="button" id="suDlBat" class="small">⬇ start_helper_windows.bat</button></li>
+              <li>Windows：保存した <code>start_helper_windows.bat</code> をダブルクリック（青い警告が出たら「詳細情報」→「実行」）。<br>Mac：ターミナルで <code>cd ~/Downloads</code> → <code>python3 pkm_omr_helper.py</code></li>
+              <li>黒いウィンドウに「補助プログラムを起動しました」と出たら、<b>そのまま開いておきます</b>。</li>
+            </ol>
+            <p class="su-wait">⏳ 補助プログラムの起動を待っています…（起動すると自動で次へ進みます）</p>
+            <p class="muted">💡 Windowsでは、Pythonの準備も補助プログラムの起動も不要な <b>Windowsアプリ版（exe）</b>がいちばん簡単です。</p>
+          </div>
+        </li>
+        <li id="suStep2" class="su-step wait">
+          <div class="su-title">homr をインストールする</div>
+          <div id="suInstallBox" hidden>
+            <p id="suChecking" class="muted">インストール済みか確認しています…</p>
+            <p id="suOld" class="su-errtext" hidden>補助プログラムが古いため、ここからインストールできません。新しい補助プログラムに置き換えてください。</p>
+            <button type="button" id="suBtnInstall" class="primary big">⬇ homr をインストールする（無料）</button>
+            <p class="muted su-note">インターネットから約750MBをダウンロードします。光回線で数分、遅い回線では十数分かかります。</p>
+            <div id="suProgress" hidden>
+              <div class="su-barwrap"><div id="suBar" class="su-bar"></div><span id="suPct" class="su-pct">1%</span></div>
+              <div class="su-phase"><span class="spin"></span> <span id="suPhase"></span> <span id="suElapsed" class="muted"></span></div>
+              <p class="muted">このまま待つだけで大丈夫です。この画面を閉じても、裏でインストールは続きます。</p>
+            </div>
+            <div id="suError" class="su-error" hidden>
+              <p class="su-errtext">✗ <span id="suErrHint"></span></p>
+              <details><summary>詳しい情報（困ったときにお問い合わせ用）</summary><pre id="suErrDetail"></pre></details>
+            </div>
+          </div>
+        </li>
+        <li id="suStep3" class="su-step wait">
+          <div class="su-title">完了</div>
+          <div id="suDone" hidden>
+            <p class="su-ok big">🎉 準備ができました！</p>
+            <p>楽譜の画像を入れて「解析」を押すと、homr が読み取ります。次回からはすぐに使えます。</p>
+          </div>
+        </li>
+      </ol>
+      <div class="dlg-actions su-actions">
+        <button type="button" id="suBtnAiOnly" class="linklike" title="APIキーが必要です。精度は homr より下がります">homr を使わず、AIだけで読む</button>
+        <div class="spacer"></div>
+        <button type="button" id="suBtnAiOnce" hidden>今回はAIで読む</button>
+        <button type="button" id="suBtnLater">あとで</button>
+        <button type="button" id="suBtnGo" class="primary" hidden>▶ はじめる</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="dlgLibrary" class="dlg wide">
+    <form method="dialog">
+      <h2>ライブラリ（保存した楽譜）</h2>
+      <div id="libList" class="lib-list"></div>
+      <div class="dlg-actions">
+        <button value="close">閉じる</button>
+      </div>
+    </form>
+  </dialog>
+
+
+  <dialog id="dlgPhone" class="dlg">
+    <form method="dialog">
+      <h2>📱 スマホから写真を送る</h2>
+      <div id="phoneBody"></div>
+      <div class="dlg-actions"><button value="close" class="primary">閉じる</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="dlgPhoto" class="dlg photo">
+    <div class="ph-head">
+      <b>写真の補正</b>
+      <span class="hint">四隅の ● を楽譜の角までドラッグすると、傾きや台形のゆがみを直して切り抜きます</span>
+    </div>
+    <div class="ph-stage"><canvas id="phCanvas"></canvas></div>
+    <div class="ph-tools">
+      <button type="button" id="phRotL">⟲ 左に回転</button>
+      <button type="button" id="phRotR">⟳ 右に回転</button>
+      <button type="button" id="phCornersReset">四隅をリセット</button>
+      <label class="chk"><input type="checkbox" id="phEnhance"> 白黒くっきり（影を除去）</label>
+      <button type="button" id="phRevert">元の画像に戻す</button>
+      <div class="spacer"></div>
+      <button type="button" id="phCancel">キャンセル</button>
+      <button type="button" id="phApply" class="primary">適用</button>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="lib/abcjs-basic-min.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
