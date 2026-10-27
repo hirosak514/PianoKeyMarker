@@ -205,6 +205,25 @@ input.num { width: 52px; }
   .workspace { grid-template-columns: 1fr; grid-template-rows: 40% 1fr; }
 }
 
+/* ---- スマホ幅 ---- */
+@media (max-width: 640px) {
+  body { font-size: 12px; }
+  .topbar { flex-wrap: wrap; row-gap: 4px; padding: 6px 8px; }
+  .topbar .brand span { display: none; }
+  .workspace { grid-template-rows: 32% 1fr; gap: 6px; padding: 6px; }
+  .pane-head { flex-wrap: wrap; row-gap: 4px; }
+  .dock { padding: 4px 6px 8px; }
+  .transport { gap: 6px; row-gap: 4px; }
+  .tp-group { gap: 4px; }
+  .pos { min-width: 0; font-size: 11px; }
+  .speed input[type="range"] { width: 70px; }
+  .kb-bar { gap: 8px; row-gap: 4px; }
+  .legend { gap: 6px; }
+  .keyboard { height: 96px; }
+  .analyze-bar { gap: 4px; padding: 6px; }
+  .model-chip { max-width: 110px; }
+}
+
 /* ---- pages ---- */
 .page-tab .ok { color: #2fa36b; font-weight: 700; }
 .page-tab.on .ok { color: #8fe0b6; }
