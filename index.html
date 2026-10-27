@@ -91,20 +91,20 @@
   <footer class="dock">
     <div id="timeline" class="timeline"></div>
     <div class="transport">
-      <div class="tp-group">
+      <div class="tp-group" id="tpTransport">
         <button id="btnPrevBar" title="前の小節">⏮</button>
         <button id="btnPlay" class="play" title="再生 / 一時停止 (Space)">▶</button>
         <button id="btnStop" title="停止して先頭へ">⏹</button>
         <button id="btnNextBar" title="次の小節">⏭</button>
         <div id="posDisplay" class="pos">小節 1 / 1</div>
       </div>
-      <div class="tp-group">
+      <div class="tp-group" id="tpSpeed">
         <label class="speed">速度
           <input id="speed" type="range" min="25" max="200" step="5" value="100">
           <span id="speedVal">100%</span>
         </label>
       </div>
-      <div class="tp-group">
+      <div class="tp-group" id="tpLoop">
         <label class="chk"><input type="checkbox" id="loopOn"> ループ</label>
         <input id="loopA" type="number" min="1" value="1" class="num" aria-label="ループ開始小節">
         <span>〜</span>
@@ -112,17 +112,17 @@
         <span>小節</span>
         <button id="btnLoopSel" class="small" title="選択中の小節をループ範囲に">選択小節</button>
       </div>
-      <div class="tp-group">
+      <div class="tp-group" id="tpStep">
         <label class="chk"><input type="checkbox" id="stepOn"> ステップ</label>
         <input id="stepN" type="number" min="1" value="1" class="num" aria-label="一時停止する小節数">
         <span>小節ごとに停止</span>
       </div>
-      <div class="tp-group">
+      <div class="tp-group" id="tpVoice">
         <label class="chk"><input type="checkbox" id="voiceStepOn"> 🎤 音声ステップ</label>
         <span id="voiceStepStatus" class="hint muted"></span>
         <button type="button" id="btnMicPermission" class="small" style="display:none">🎤 マイクの使用を許可</button>
       </div>
-      <div class="tp-group">
+      <div class="tp-group" id="tpHands">
         <select id="hands" aria-label="鳴らす手">
           <option value="both">両手の音</option>
           <option value="R">右手の音のみ</option>
