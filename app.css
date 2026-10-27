@@ -52,11 +52,12 @@ input.num { width: 52px; }
 .topbar {
   display: flex; align-items: center; gap: 10px; padding: 8px 12px;
   background: var(--head); color: var(--head-ink);
+  flex-wrap: wrap; row-gap: 6px; /* ボタンが入りきらない幅では2段に折り返す（右端のボタンが画面外に出ないように） */
 }
 .topbar button, .topbar .btn { background: #2c3242; border-color: #3c4356; color: var(--head-ink); }
 .topbar button:hover, .topbar .btn:hover { background: #363d50; }
 .topbar button.accent { background: var(--accent); border-color: var(--accent); }
-.brand { display: flex; align-items: center; gap: 8px; font-weight: 700; letter-spacing: .04em; }
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 700; letter-spacing: .04em; white-space: nowrap; flex-shrink: 0; }
 .brand img { width: 22px; height: 22px; }
 .title-input {
   background: transparent !important; border: 1px solid transparent !important; color: var(--head-ink) !important;
