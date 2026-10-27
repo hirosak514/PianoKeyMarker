@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>楽譜→鍵盤マーカー</title>
-  <link rel="stylesheet" href="app.css?v=1793142705114">
+  <link rel="stylesheet" href="app.css?v=1793144401595">
 </head>
 <body>
   <header class="topbar">
@@ -22,7 +22,8 @@
       <button id="btnSaveAs">別名で保存</button>
     </div>
     <div class="btn-group">
-      <button id="btnExport" title="JSONファイルとして書き出し">書き出し</button>
+      <button id="btnExport" title="JSONファイルとして書き出し（このアプリで読み込み直せる形式）">書き出し</button>
+      <button id="btnExportMidi" title="MIDIファイル（.mid）として書き出し（他の楽譜・演奏ソフトで開けます）">MIDI出力</button>
       <label class="btn" title="楽譜ファイルを読み込み（MusicXML・MXL・MIDI・このアプリで書き出したJSON）">読み込み<input type="file" id="importFile" accept=".json,.musicxml,.xml,.mxl,.mid,.midi" hidden></label>
     </div>
     <button id="btnTour" title="操作をガイドツアーで順番に説明します">🧭 ガイドツアー</button>
@@ -129,6 +130,7 @@
           <option value="R">右手の音のみ</option>
           <option value="L">左手の音のみ</option>
         </select>
+        <select id="timbre" aria-label="再生音の音色" title="再生音の音色"></select>
         <label class="vol" title="音量">🔊<input id="volume" type="range" min="0" max="1" step="0.05"></label>
       </div>
     </div>
@@ -377,6 +379,6 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script src="lib/abcjs-basic-min.js"></script>
-  <script src="js/main.js?v=1793142705114"></script>
+  <script src="js/main.js?v=1793144401595"></script>
 </body>
 </html>
