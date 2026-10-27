@@ -205,21 +205,25 @@ input.num { width: 52px; }
   .workspace { grid-template-columns: 1fr; grid-template-rows: 40% 1fr; }
 }
 
-/* ---- スマホ幅 ---- */
+/* ---- スマホ幅 ----
+   操作パネル（.dock：再生操作・鍵盤など）が縦に長くなりすぎると、
+   肝心の楽譜画像・編集エリア（.workspace）がほぼ隠れてしまうため、
+   .workspace の高さを確保しつつ、.dock 側は高さを抑えて必要なら
+   内部スクロールできるようにする。 */
 @media (max-width: 640px) {
   body { font-size: 12px; }
   .topbar { flex-wrap: wrap; row-gap: 4px; padding: 6px 8px; }
   .topbar .brand span { display: none; }
-  .workspace { grid-template-rows: 32% 1fr; gap: 6px; padding: 6px; }
+  .workspace { grid-template-rows: 42% 1fr; gap: 6px; padding: 6px; flex: 1 1 auto; min-height: 0; }
   .pane-head { flex-wrap: wrap; row-gap: 4px; }
-  .dock { padding: 4px 6px 8px; }
+  .dock { padding: 4px 6px 8px; flex: 0 0 auto; max-height: 48vh; overflow-y: auto; }
   .transport { gap: 6px; row-gap: 4px; }
   .tp-group { gap: 4px; }
   .pos { min-width: 0; font-size: 11px; }
   .speed input[type="range"] { width: 70px; }
   .kb-bar { gap: 8px; row-gap: 4px; }
   .legend { gap: 6px; }
-  .keyboard { height: 96px; }
+  .keyboard { height: 84px; }
   .analyze-bar { gap: 4px; padding: 6px; }
   .model-chip { max-width: 110px; }
 }
