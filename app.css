@@ -388,3 +388,40 @@ button.linklike { background: none; border: none; color: #6b6355; text-decoratio
 .engine-chip.warn { background: #fff1d6; color: #8a5a00; border-color: #f0d49a; }
 .engine-chip.busy { background: #e8f0fb; color: #23508f; border-color: #bcd0ee; }
 .su-pending { background: #e8f0fb; color: #23508f; border-radius: 8px; padding: 6px 10px; font-weight: bold; }
+
+/* ---------------- ガイドツアー ---------------- */
+.tour-cta-row { display: flex; align-items: center; gap: 8px; }
+.tour-root { position: fixed; inset: 0; z-index: 2000; display: none; }
+.tour-root.on { display: block; }
+.tour-box {
+  position: fixed;
+  border: 3px solid #e63b3b;
+  border-radius: 8px;
+  box-shadow: 0 0 0 9999px rgba(20, 16, 10, .58), 0 0 0 1px rgba(230, 59, 59, .3);
+  pointer-events: none;
+  transition: left .25s ease, top .25s ease, width .25s ease, height .25s ease;
+}
+.tour-card {
+  position: fixed;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+  padding: 14px 16px;
+  font-size: 13px;
+  line-height: 1.6;
+  transition: left .25s ease, top .25s ease;
+}
+.tour-step { font-size: 11px; color: var(--muted); margin-bottom: 2px; font-weight: 600; }
+.tour-title { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+.tour-body { margin-bottom: 12px; white-space: pre-wrap; }
+.tour-nav { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.tour-nav-right { display: flex; gap: 8px; }
+.tour-skip { background: none; border: none; color: var(--muted); text-decoration: underline; cursor: pointer; font-size: 12px; padding: 4px 0; }
+.tour-prev, .tour-next { padding: 6px 14px; border-radius: 6px; border: 1px solid var(--line); background: #fff; cursor: pointer; font-size: 13px; }
+.tour-prev:disabled { opacity: .4; cursor: default; }
+.tour-next { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+@media (max-width: 640px) {
+  .tour-card { font-size: 13px; padding: 12px 14px; }
+}

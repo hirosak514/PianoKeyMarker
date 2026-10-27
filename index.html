@@ -25,6 +25,7 @@
       <button id="btnExport" title="JSONファイルとして書き出し">書き出し</button>
       <label class="btn" title="楽譜ファイルを読み込み（MusicXML・MXL・MIDI・このアプリで書き出したJSON）">読み込み<input type="file" id="importFile" accept=".json,.musicxml,.xml,.mxl,.mid,.midi" hidden></label>
     </div>
+    <button id="btnTour" title="操作をガイドツアーで順番に説明します">🧭 ガイドツアー</button>
     <button id="btnHelp" title="使い方・準備">？ 使い方</button>
     <button id="btnSettings" title="設定">⚙ 設定</button>
   </header>
@@ -33,7 +34,7 @@
     <section class="pane image-pane">
       <div class="pane-head">
         <div id="pageTabs" class="page-tabs" title="ドラッグでページの順番を入れ替え"></div>
-        <label class="btn small" title="画像ファイルを選択（複数可・iPhoneのHEICも可）">＋ 画像<input type="file" id="imgFile" accept="image/*,.heic,.heif" multiple hidden></label>
+        <label id="lblAddImage" class="btn small" title="画像ファイルを選択（複数可・iPhoneのHEICも可）">＋ 画像<input type="file" id="imgFile" accept="image/*,.heic,.heif" multiple hidden></label>
         <button id="btnPhone" class="small" title="スマホで撮った写真をQRコード経由で受け取る">📱 スマホから</button>
         <button id="btnPaste" class="small" title="クリップボードの画像を貼り付け（Ctrl+V でも可）">📋 貼り付け</button>
         <button id="btnPhoto" class="small" title="傾き・台形のゆがみ・影を補正（スマホ写真向け）" disabled>✎ 写真補正</button>
@@ -202,6 +203,7 @@
   <dialog id="dlgHelp" class="dlg wide help">
     <form method="dialog">
       <h2>使い方と準備</h2>
+      <p class="tour-cta-row"><button type="button" id="btnTourFromHelp" class="small primary">🧭 ガイドツアーで操作を見る</button> <span class="hint muted">画面の各部分を順番に説明します</span></p>
       <p class="web-only">このアプリは <b>このHTMLファイル1つ</b> で動きます。Chrome・Edge でファイルを開くだけで使えます（インストール不要）。作った楽譜や設定はこのブラウザの中に保存されます。</p>
       <p class="desktop-only">作った楽譜や設定はこのPCの中（このアプリ専用の保存場所）に保存されます。</p>
 
