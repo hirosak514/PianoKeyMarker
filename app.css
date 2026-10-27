@@ -206,17 +206,19 @@ input.num { width: 52px; }
 }
 
 /* ---- スマホ幅 ----
-   操作パネル（.dock：再生操作・鍵盤など）が縦に長くなりすぎると、
-   肝心の楽譜画像・編集エリア（.workspace）がほぼ隠れてしまうため、
-   .workspace の高さを確保しつつ、.dock 側は高さを抑えて必要なら
-   内部スクロールできるようにする。 */
+   画面の高さに全部を収めようとして内部要素を無理に縮める（0になるまで潰れる）と、
+   操作しようとしても何も見えなくなる上、スクロールできることにも気づきにくい。
+   そのため、各エリアに最低限の高さを確保したうえで、収まらない分はページ全体を
+   縦スクロールさせる（画面右に通常のスクロールバーが出る）方針にする。 */
 @media (max-width: 640px) {
-  body { font-size: 12px; }
-  .topbar { flex-wrap: wrap; row-gap: 4px; padding: 6px 8px; }
+  html { height: auto; }
+  body { height: auto; min-height: 100%; overflow-y: auto; overflow-x: hidden; font-size: 12px; }
+  .topbar { flex-wrap: wrap; row-gap: 4px; padding: 6px 8px; flex: 0 0 auto; }
   .topbar .brand span { display: none; }
-  .workspace { grid-template-rows: 42% 1fr; gap: 6px; padding: 6px; flex: 1 1 auto; min-height: 0; }
+  .workspace { grid-template-rows: 260px 260px; gap: 6px; padding: 6px; flex: 0 0 auto; }
+  .pane { min-height: 260px; }
   .pane-head { flex-wrap: wrap; row-gap: 4px; }
-  .dock { padding: 4px 6px 8px; flex: 0 0 auto; max-height: 48vh; overflow-y: auto; }
+  .dock { padding: 4px 6px 8px; flex: 0 0 auto; }
   .transport { gap: 6px; row-gap: 4px; }
   .tp-group { gap: 4px; }
   .pos { min-width: 0; font-size: 11px; }
