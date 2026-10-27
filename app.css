@@ -86,7 +86,15 @@ input.num { width: 52px; }
 .ai-status { font-size: 12px; color: var(--muted); }
 .ai-status.err { color: #b3261e; }
 .ai-status.ok { color: #1e7b4f; }
+/* 解析中は目立たせる：太字・濃い色・背景つきのバッジ表示にして見失わないようにする */
+.ai-status.busy {
+  display: inline-flex; align-items: center;
+  font-size: 13px; font-weight: 700; color: #7a3b14;
+  background: #fff1dc; border: 1px solid #e8b878; border-radius: 8px;
+  padding: 4px 10px 4px 8px;
+}
 .spin { display: inline-block; width: 11px; height: 11px; border: 2px solid #ccc; border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; vertical-align: -1px; margin-right: 4px; }
+.ai-status.busy .spin { width: 13px; height: 13px; border-width: 2.5px; border-color: #e0b27a; border-top-color: #7a3b14; margin-right: 6px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ---- editor ---- */
