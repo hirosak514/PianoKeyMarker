@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>楽譜→鍵盤マーカー</title>
-  <link rel="stylesheet" href="app.css?v=1793161060274">
+  <link rel="stylesheet" href="app.css?v=1793165530308">
 </head>
 <body>
   <header class="topbar">
@@ -204,6 +204,18 @@
     </form>
   </dialog>
 
+  <dialog id="dlgAsk" class="dlg ask">
+    <form method="dialog">
+      <h2 id="askTitle"></h2>
+      <p id="askBody"></p>
+      <p id="askNote" class="muted"></p>
+      <div class="dlg-actions">
+        <button value="no" id="askNo">いいえ</button>
+        <button value="yes" id="askYes" class="primary">はい</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog id="dlgSamples" class="dlg">
     <form method="dialog">
       <h2>🎵 サンプル楽譜を選ぶ</h2>
@@ -277,7 +289,7 @@
         <button type="button" id="btnHelperLog" class="small">ログをファイルで開く</button>
       </div>
       <ol class="web-only">
-        <li><b>Windows</b>：<button type="button" id="dlHelperLauncher" class="small primary">⬇ 補助プログラム（Windows用）</button> を保存して、ダブルクリックするだけです（Pythonのインストールは不要。青い警告が出たら「詳細情報」→「実行」）。初回は自動で準備が進みます（1〜3分）。</li>
+        <li><b>Windows</b>：<button type="button" id="dlHelperLauncher" class="small primary">⬇ 補助プログラム（Windows用）</button> を保存して、ダブルクリックするだけです（Pythonのインストールは不要。青い警告が出たら「詳細情報」→「実行」）。初回は自動で準備が進みます（1〜3分）。次回からは「解析する」を押すと自動で起動し、画面を閉じると自動で終了します。</li>
         <li><b>Mac</b>：<button type="button" id="dlHelperPy" class="small">⬇ pkm_omr_helper.py</button> を保存し、「ターミナル」に次の1行を貼り付けて Return：<br><code class="su-cmd-inline">curl -LsSf https://astral.sh/uv/install.sh | sh &amp;&amp; export PATH="$HOME/.local/bin:$PATH" &amp;&amp; uv run --no-project --python 3.12 ~/Downloads/pkm_omr_helper.py --no-setup</code></li>
         <li>黒いウィンドウ（ターミナル）に「補助プログラムを起動しました」と出たら準備完了。<b>そのウィンドウは開いたまま</b>にします。続けて、準備画面の「homr をインストールする」を押します（約750MB・初回だけ）。</li>
       </ol>
@@ -349,7 +361,7 @@
                 <li>ダウンロードしたファイル <b>「鍵盤マーカー補助プログラム」</b> を開きます（ブラウザのダウンロード一覧でクリック、またはダウンロードフォルダでダブルクリック）。
                   <div class="su-hint">青い画面「WindowsによってPCが保護されました」が出たら、<b>「詳細情報」→「実行」</b>を押します。</div></li>
                 <li>黒いウィンドウが開き、自動で準備が進みます（初回だけ1〜3分）。<b>そのまま開いておけばOK</b>です。
-                  <div class="su-hint">閉じると読み取りができなくなります（最小化は大丈夫）。次回からは同じファイルをダブルクリックするだけです。</div></li>
+                  <div class="su-hint">閉じると読み取りができなくなります（最小化は大丈夫）。<b>次回からは、「解析する」を押すと自動で起動します</b>（ブラウザに「開きますか？」と出たら「開く」を押します）。鍵盤マーカーの画面を閉じると、補助プログラムも自動で終了します。</div></li>
               </ol>
             </div>
             <details id="suMac" class="su-mac">
@@ -477,8 +489,9 @@ import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
-VERSION = "2.1"
+VERSION = "2.2"
 LOCK = threading.Lock()          # 読み取りは1枚ずつ（どのエンジンもメモリを多く使うため）
+LAST_ACTIVITY = [0.0]           # 最後にアプリから接続があった時刻（--idle-exit 用）
 MAX_BYTES = 30 * 1024 * 1024
 TIMEOUT_SEC = 20 * 60
 AUDIVERIS_OVERRIDE = None
@@ -800,6 +813,10 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
+    def handle_one_request(self):
+        LAST_ACTIVITY[0] = time.time()
+        return super().handle_one_request()
+
     def do_OPTIONS(self):
         self.send_response(204)
         self.cors()
@@ -879,6 +896,23 @@ def _console_utf8():
             pass
 
 
+def _idle_watch(srv, limit):
+    """アプリ（ブラウザ）から一定時間接続がなければ終了する。
+    アプリは開いている間、定期的に /health へ接続してくる。ブラウザやタブを閉じると接続が止まる。
+    読み取り中・homr のインストール中は終了しない。"""
+    while True:
+        time.sleep(5)
+        idle = time.time() - LAST_ACTIVITY[0]
+        busy = LOCK.locked() or HOMR_STATE.get("state") == "installing"
+        if idle >= limit and not busy:
+            say("鍵盤マーカーの画面が閉じられたため、補助プログラムを終了します。")
+            try:
+                srv.shutdown()
+            except Exception:
+                pass
+            return
+
+
 def main():
     global AUDIVERIS_OVERRIDE
     _console_utf8()
@@ -888,6 +922,8 @@ def main():
     ap.add_argument("--no-setup", action="store_true", help="インストールの確認をしない")
     ap.add_argument("--no-homr-prepare", action="store_true", help=argparse.SUPPRESS)
     ap.add_argument("--install-homr", action="store_true", help="起動と同時に homr をインストールする")
+    ap.add_argument("--idle-exit", type=int, default=0,
+                    help="アプリからの接続がこの秒数ないとき自動で終了する（ブラウザから起動した場合。0=終了しない）")
     args = ap.parse_args()
     AUDIVERIS_OVERRIDE = args.audiveris
     say("楽譜→鍵盤マーカー 補助プログラム " + VERSION)
@@ -905,7 +941,16 @@ def main():
     threading.Thread(target=check_homr, daemon=True).start()
     if args.install_homr:
         threading.Thread(target=install_homr, daemon=True).start()
-    srv = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
+    try:
+        srv = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
+    except OSError:
+        # すでに補助プログラムが動いている（同じ番号を使っている）: そちらを使うので、ここは静かに終わる
+        say("補助プログラムはすでに起動しています。このウィンドウは閉じてかまいません。")
+        return
+    if args.idle_exit > 0:
+        LAST_ACTIVITY[0] = time.time()
+        threading.Thread(target=_idle_watch, args=(srv, args.idle_exit), daemon=True).start()
+        say(f"鍵盤マーカーの画面を閉じると、{args.idle_exit // 60}分ほどで自動的に終了します。")
     say(f"楽譜→鍵盤マーカー 補助プログラムを起動しました： http://127.0.0.1:{args.port}")
     say("このウィンドウを開いている間、鍵盤マーカーから専用エンジンを使えます。終了は Ctrl+C。")
     try:
@@ -925,6 +970,9 @@ set "PKM=%LOCALAPPDATA%\PianoKeyMarker"
 set "PKM_SELF=%~f0"
 if not exist "%PKM%" mkdir "%PKM%"
 set "UV=%PKM%\uv.exe"
+rem 鍵盤マーカーの画面から自動で起動されたときは --protocol が付く（ウィンドウは最小化で開く）
+set "PKM_PROTO="
+if /i "%~1"=="--protocol" set "PKM_PROTO=1"
 
 echo.
 echo  ==============================================
@@ -950,12 +998,28 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command "$t=[IO.File]::ReadAllTex
 if errorlevel 1 goto fail
 if not exist "%PKM%\pkm_omr_helper.py" goto fail
 
+rem このファイル自体を決まった場所（%LOCALAPPDATA%\PianoKeyMarker\helper.bat）に保存し、
+rem 鍵盤マーカーの画面から自動で起動できるように「起動用リンク」を登録する（管理者権限は不要）
+if /i not "%~f0"=="%PKM%\helper.bat" copy /y "%~f0" "%PKM%\helper.bat" >nul
+reg add "HKCU\Software\Classes\pianokeymarker-helper" /ve /d "URL:PianoKeyMarker Helper" /f >nul
+reg add "HKCU\Software\Classes\pianokeymarker-helper" /v "URL Protocol" /d "" /f >nul
+reg add "HKCU\Software\Classes\pianokeymarker-helper\shell\open\command" /ve /d "\"%ComSpec%\" /c start \"PianoKeyMarker\" /min \"%PKM%\helper.bat\" --protocol" /f >nul
+
 set "PATH=%PKM%;%PATH%"
 echo  補助プログラムを起動します（初回は Python の準備に1〜3分かかります）...
 echo.
-"%UV%" run --no-project --python 3.12 "%PKM%\pkm_omr_helper.py" --no-setup
+rem 鍵盤マーカーの画面（アプリ・ブラウザ）を閉じて3分ほど接続がなければ、自動で終了する
+"%UV%" run --no-project --python 3.12 "%PKM%\pkm_omr_helper.py" --no-setup --idle-exit 180
+if errorlevel 1 goto crashed
 echo.
-echo  補助プログラムが終了しました。もう一度使うときは、このファイルをダブルクリックしてください。
+echo  補助プログラムを終了しました。次回からは、鍵盤マーカーで「解析する」を押すと自動で起動します。
+if defined PKM_PROTO exit /b
+timeout /t 8 >nul
+exit /b
+
+:crashed
+echo.
+echo  補助プログラムが止まりました。上に表示された内容を確認してください。
 pause
 exit /b
 
@@ -1000,8 +1064,9 @@ import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
-VERSION = "2.1"
+VERSION = "2.2"
 LOCK = threading.Lock()          # 読み取りは1枚ずつ（どのエンジンもメモリを多く使うため）
+LAST_ACTIVITY = [0.0]           # 最後にアプリから接続があった時刻（--idle-exit 用）
 MAX_BYTES = 30 * 1024 * 1024
 TIMEOUT_SEC = 20 * 60
 AUDIVERIS_OVERRIDE = None
@@ -1323,6 +1388,10 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
+    def handle_one_request(self):
+        LAST_ACTIVITY[0] = time.time()
+        return super().handle_one_request()
+
     def do_OPTIONS(self):
         self.send_response(204)
         self.cors()
@@ -1402,6 +1471,23 @@ def _console_utf8():
             pass
 
 
+def _idle_watch(srv, limit):
+    """アプリ（ブラウザ）から一定時間接続がなければ終了する。
+    アプリは開いている間、定期的に /health へ接続してくる。ブラウザやタブを閉じると接続が止まる。
+    読み取り中・homr のインストール中は終了しない。"""
+    while True:
+        time.sleep(5)
+        idle = time.time() - LAST_ACTIVITY[0]
+        busy = LOCK.locked() or HOMR_STATE.get("state") == "installing"
+        if idle >= limit and not busy:
+            say("鍵盤マーカーの画面が閉じられたため、補助プログラムを終了します。")
+            try:
+                srv.shutdown()
+            except Exception:
+                pass
+            return
+
+
 def main():
     global AUDIVERIS_OVERRIDE
     _console_utf8()
@@ -1411,6 +1497,8 @@ def main():
     ap.add_argument("--no-setup", action="store_true", help="インストールの確認をしない")
     ap.add_argument("--no-homr-prepare", action="store_true", help=argparse.SUPPRESS)
     ap.add_argument("--install-homr", action="store_true", help="起動と同時に homr をインストールする")
+    ap.add_argument("--idle-exit", type=int, default=0,
+                    help="アプリからの接続がこの秒数ないとき自動で終了する（ブラウザから起動した場合。0=終了しない）")
     args = ap.parse_args()
     AUDIVERIS_OVERRIDE = args.audiveris
     say("楽譜→鍵盤マーカー 補助プログラム " + VERSION)
@@ -1428,7 +1516,16 @@ def main():
     threading.Thread(target=check_homr, daemon=True).start()
     if args.install_homr:
         threading.Thread(target=install_homr, daemon=True).start()
-    srv = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
+    try:
+        srv = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
+    except OSError:
+        # すでに補助プログラムが動いている（同じ番号を使っている）: そちらを使うので、ここは静かに終わる
+        say("補助プログラムはすでに起動しています。このウィンドウは閉じてかまいません。")
+        return
+    if args.idle_exit > 0:
+        LAST_ACTIVITY[0] = time.time()
+        threading.Thread(target=_idle_watch, args=(srv, args.idle_exit), daemon=True).start()
+        say(f"鍵盤マーカーの画面を閉じると、{args.idle_exit // 60}分ほどで自動的に終了します。")
     say(f"楽譜→鍵盤マーカー 補助プログラムを起動しました： http://127.0.0.1:{args.port}")
     say("このウィンドウを開いている間、鍵盤マーカーから専用エンジンを使えます。終了は Ctrl+C。")
     try:
@@ -1440,6 +1537,6 @@ def main():
 if __name__ == "__main__":
     main()
 </script>
-  <script src="js/main.js?v=1793161060274"></script>
+  <script src="js/main.js?v=1793165530308"></script>
 </body>
 </html>
