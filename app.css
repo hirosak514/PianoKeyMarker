@@ -495,3 +495,4 @@ body.resizing, body.resizing * { cursor: row-resize !important; user-select: non
 
 /* スマホ・タブレットでは「スマホから送る」関連の案内を出さない */
 .is-mobile .phone-guide, .is-mobile .pc-only { display: none !important; }
+#askBody { white-space: pre-line; }
