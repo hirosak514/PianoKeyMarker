@@ -464,3 +464,14 @@ body.resizing, body.resizing * { cursor: row-resize !important; user-select: non
 .sample-card .s { color: var(--muted); font-size: 12px; line-height: 1.4; }
 .sample-card:hover { border-color: var(--accent); }
 .sample-warn { color: #9a3412; background: #fff4e6; border: 1px solid #f0c48a; border-radius: 6px; padding: 6px 10px; font-size: 12px; }
+
+/* 補助プログラムの準備（Web版）: パソコンに不慣れな人向けの大きめの手順 */
+.su-easy > li { margin-bottom: 8px; }
+.su-easy button.primary { font-size: 14px; padding: 8px 16px; }
+.su-hint { color: var(--muted); font-size: 12px; margin-top: 2px; }
+.su-mac { margin: 6px 0; }
+.su-mac summary { cursor: pointer; color: var(--muted); }
+.su-cmd { display: flex; gap: 6px; align-items: flex-start; margin-top: 4px; }
+.su-cmd code, .su-cmd-inline { display: block; flex: 1; font-size: 11px; background: #f3efe6; border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; word-break: break-all; user-select: all; }
+.su-alt { background: #f3f7fb; border: 1px solid #c9d8e8; border-radius: 8px; padding: 8px 12px; margin: 8px 0; }
+.su-alt p { margin: 2px 0 6px; }

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>楽譜→鍵盤マーカー</title>
-  <link rel="stylesheet" href="app.css?v=1793155268396">
+  <link rel="stylesheet" href="app.css?v=1793156517533">
 </head>
 <body>
   <header class="topbar">
@@ -277,13 +277,9 @@
         <button type="button" id="btnHelperLog" class="small">ログをファイルで開く</button>
       </div>
       <ol class="web-only">
-        <li>Python を入れる（初回のみ）。<a href="https://www.python.org/downloads/" target="_blank" rel="noopener">python.org</a> から <b>Python 3.13</b> をインストール。Windowsは最初の画面で <b>「Add python.exe to PATH」にチェック</b>。Macはインストール後「アプリケーション → Python 3.13 → Install Certificates.command」をダブルクリック。</li>
-        <li>下のボタンで補助プログラムを<b>同じフォルダ</b>に保存（どちらも必要です）<br>
-          <button type="button" id="dlHelperPy" class="small">⬇ pkm_omr_helper.py</button>
-          <button type="button" id="dlHelperBat" class="small">⬇ 起動用 start_helper_windows.bat（Windows）</button></li>
-        <li>Windows：保存した <code>start_helper_windows.bat</code> をダブルクリック（青い警告は「詳細情報」→「実行」）。<br>
-          Mac：ターミナルを開き <code>cd ~/Downloads</code> → <code>python3 pkm_omr_helper.py</code></li>
-        <li>初回は部品と homr の準備（約900MBのダウンロード）があります。「補助プログラムを起動しました」と出たら準備完了。<b>そのウィンドウは開いたまま</b>にします。</li>
+        <li><b>Windows</b>：<button type="button" id="dlHelperLauncher" class="small primary">⬇ 補助プログラム（Windows用）</button> を保存して、ダブルクリックするだけです（Pythonのインストールは不要。青い警告が出たら「詳細情報」→「実行」）。初回は自動で準備が進みます（1〜3分）。</li>
+        <li><b>Mac</b>：<button type="button" id="dlHelperPy" class="small">⬇ pkm_omr_helper.py</button> を保存し、「ターミナル」に次の1行を貼り付けて Return：<br><code class="su-cmd-inline">curl -LsSf https://astral.sh/uv/install.sh | sh &amp;&amp; export PATH="$HOME/.local/bin:$PATH" &amp;&amp; uv run --no-project --python 3.12 ~/Downloads/pkm_omr_helper.py --no-setup</code></li>
+        <li>黒いウィンドウ（ターミナル）に「補助プログラムを起動しました」と出たら準備完了。<b>そのウィンドウは開いたまま</b>にします。続けて、準備画面の「homr をインストールする」を押します（約750MB・初回だけ）。</li>
       </ol>
       <p class="muted">補助プログラムはこのPCの中からの接続だけを受け付け、画像を外部に送りません。Audiveris（スキャン楽譜向け）は <a href="https://github.com/Audiveris/audiveris/releases" target="_blank" rel="noopener">GitHub の公式配布</a> から入れると自動で使えます（audiveris.com / .net は無関係の危険なサイトです）。</p>
       <p><b>B. AI（homr を使わない場合・精度は homr より下がります）</b><br>「⚙ 設定」で Claude・ChatGPT・Gemini・Grok のどれかの APIキーを入力します（利用料はAI各社に直接かかります）。</p>
@@ -345,17 +341,33 @@
             <button type="button" id="suHelperRestart" class="small" hidden>↻ 補助プログラムを再起動</button>
           </div>
           <div id="suHelperWeb" hidden>
-            <p>Webアプリ版では、PCで「補助プログラム」を起動しておく必要があります。</p>
-            <ol class="su-sub">
-              <li><a href="https://www.python.org/downloads/" target="_blank" rel="noopener">python.org</a> から <b>Python</b> をインストール（初回だけ）。Windowsは最初の画面で <b>「Add python.exe to PATH」にチェック</b>を入れてから「Install Now」。</li>
-              <li>補助プログラムを<b>同じフォルダ</b>に保存：
-                <button type="button" id="suDlPy" class="small">⬇ pkm_omr_helper.py</button>
-                <button type="button" id="suDlBat" class="small">⬇ start_helper_windows.bat</button></li>
-              <li>Windows：保存した <code>start_helper_windows.bat</code> をダブルクリック（青い警告が出たら「詳細情報」→「実行」）。<br>Mac：ターミナルで <code>cd ~/Downloads</code> → <code>python3 pkm_omr_helper.py</code></li>
-              <li>黒いウィンドウに「補助プログラムを起動しました」と出たら、<b>そのまま開いておきます</b>。</li>
-            </ol>
+            <p>このWeb版では、PCで「補助プログラム」を動かしておく必要があります。<b>Windowsはダウンロードしてダブルクリックするだけ</b>で、Pythonなどのインストールは不要です。</p>
+            <div id="suWin">
+              <ol class="su-sub su-easy">
+                <li><button type="button" id="suDlLauncher" class="primary">⬇ 補助プログラムをダウンロード</button>
+                  <div class="su-hint">ブラウザに「危険なファイルの可能性があります」などと出たら、<b>「保存」</b>（または「保持」）を選びます。</div></li>
+                <li>ダウンロードしたファイル <b>「鍵盤マーカー補助プログラム」</b> を開きます（ブラウザのダウンロード一覧でクリック、またはダウンロードフォルダでダブルクリック）。
+                  <div class="su-hint">青い画面「WindowsによってPCが保護されました」が出たら、<b>「詳細情報」→「実行」</b>を押します。</div></li>
+                <li>黒いウィンドウが開き、自動で準備が進みます（初回だけ1〜3分）。<b>そのまま開いておけばOK</b>です。
+                  <div class="su-hint">閉じると読み取りができなくなります（最小化は大丈夫）。次回からは同じファイルをダブルクリックするだけです。</div></li>
+              </ol>
+            </div>
+            <details id="suMac" class="su-mac">
+              <summary>Mac の場合</summary>
+              <ol class="su-sub">
+                <li><button type="button" id="suDlPy" class="small">⬇ pkm_omr_helper.py</button> を保存します（「ダウンロード」フォルダに保存されます）。</li>
+                <li>「ターミナル」を開き（Launchpad →「その他」→「ターミナル」）、次の1行を貼り付けて Return キーを押します。
+                  <div class="su-cmd"><code id="suMacCmd">curl -LsSf https://astral.sh/uv/install.sh | sh &amp;&amp; export PATH="$HOME/.local/bin:$PATH" &amp;&amp; uv run --no-project --python 3.12 ~/Downloads/pkm_omr_helper.py --no-setup</code><button type="button" id="suCopyMac" class="small">コピー</button></div></li>
+                <li>「補助プログラムを起動しました」と出たら、ターミナルは開いたままにします。</li>
+              </ol>
+            </details>
             <p class="su-wait">⏳ 補助プログラムの起動を待っています…（起動すると自動で次へ進みます）</p>
-            <p class="muted">💡 Windowsでは、Pythonの準備も補助プログラムの起動も不要な <b>Windowsアプリ版（exe）</b>がいちばん簡単です。</p>
+            <div class="su-alt">
+              <b>インストールせずに使いたい場合</b>
+              <p>「ブラウザ内で読み取る」なら、準備は何も要りません（読み取りに1〜2分かかります）。</p>
+              <button type="button" id="suUseBrowser">準備なしで、ブラウザ内で読み取る</button>
+            </div>
+            <p class="muted">💡 Windowsでは、補助プログラムも要らない <b>Windowsアプリ版（exe）</b>がいちばん簡単です。</p>
           </div>
         </li>
         <li id="suStep2" class="su-step wait">
@@ -434,6 +446,1000 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script src="lib/abcjs-basic-min.js"></script>
-  <script src="js/main.js?v=1793155268396"></script>
+  <script type="text/plain" id="helper-py">#!/usr/bin/env python3
+"""
+楽譜→鍵盤マーカー 用の補助プログラム
+楽譜読み取り専用のソフト（oemer / homr / Audiveris）をこのPCで動かし、鍵盤マーカーから使えるようにします。
+
+使い方:
+    python pkm_omr_helper.py            # http://127.0.0.1:8765 で待ち受け（初回は必要な部品を自動インストール）
+    python pkm_omr_helper.py --port 9000
+    python pkm_omr_helper.py --audiveris "C:\\path\\to\\Audiveris.exe"   # Audiveris の場所を指定
+
+エンジン:
+    homr       … いちばんおすすめ。鍵盤マーカーの画面の「homr を準備する」から初回だけインストール（約600MB）
+    Audiveris  … 印刷楽譜のスキャン向け。https://github.com/Audiveris/audiveris/releases から別途インストール
+    oemer      … Python 3.10〜3.13 のときに自動インストール
+
+このPCの中（127.0.0.1）からの接続だけを受け付けます。
+"""
+import argparse
+import glob
+import importlib
+import json
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+import threading
+import zipfile
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import urlparse, parse_qs
+
+VERSION = "2.1"
+LOCK = threading.Lock()          # 読み取りは1枚ずつ（どのエンジンもメモリを多く使うため）
+MAX_BYTES = 30 * 1024 * 1024
+TIMEOUT_SEC = 20 * 60
+AUDIVERIS_OVERRIDE = None
+# homr の導入状態  state: checking | not_installed | installing | ready | error
+HOMR_STATE = {"state": "checking", "percent": 0, "phase": "", "error": "", "hint": "", "started": 0.0}
+HOMR_EXPECTED_MB = 750          # 初回にダウンロード・展開される量の目安（部品＋読み取りモデル）
+DATA_DIR = os.path.join(os.path.expanduser("~"), ".pkm_omr")
+HOMR_MARKER = os.path.join(DATA_DIR, "homr_ready.json")
+
+# oemer の動作確認済みの組み合わせ（oemer の依存関係どおりに入れると新しすぎる部品が入り動かないため）
+OEMER_DEPS = ["onnxruntime==1.20.1", "opencv-python-headless<5", "matplotlib", "pillow", "scipy", "scikit-learn>=1.2", "typing-extensions"]
+HOMR_CMD = ["tool", "run", "--python", "3.12", "--from", "homr[cpu]", "homr"]
+import re
+import time
+
+
+def say(msg):
+    print(msg, flush=True)
+
+
+def py_ok_for_oemer():
+    return (3, 10) <= sys.version_info[:2] <= (3, 13)
+
+
+def pip_install(args):
+    base = [sys.executable, "-m", "pip", "install", "--disable-pip-version-check"]
+    say("  > pip install " + " ".join(args))
+    if subprocess.run(base + args).returncode == 0:
+        return True
+    # 書き込み権限がない環境では --user で再試行
+    return subprocess.run(base + ["--user"] + args).returncode == 0
+
+
+# ---------------- oemer ----------------
+def oemer_ok():
+    try:
+        for mod in ("oemer.ete", "onnxruntime", "cv2", "sklearn", "scipy", "matplotlib", "typing_extensions"):
+            importlib.import_module(mod)
+        return True
+    except Exception:
+        return False
+
+
+def find_oemer():
+    if not oemer_ok():
+        return None
+    exe = shutil.which("oemer")
+    if exe:
+        return [exe]
+    return [sys.executable, "-c", "import sys; from oemer.ete import main; sys.argv[0] = 'oemer'; main()"]
+
+
+# ---------------- homr（uv 経由） ----------------
+def uv_cmd():
+    try:
+        importlib.import_module("uv")
+        return [sys.executable, "-m", "uv"]
+    except Exception:
+        exe = shutil.which("uv")
+        return [exe] if exe else None
+
+
+def _dir_mb(paths):
+    total = 0
+    for root_dir in paths:
+        for root, _dirs, files in os.walk(root_dir):
+            for f in files:
+                try:
+                    total += os.path.getsize(os.path.join(root, f))
+                except OSError:
+                    pass
+    return total / 1048576
+
+
+def _uv_dirs(uv):
+    dirs = []
+    for args in (["cache", "dir"], ["python", "dir"], ["tool", "dir"]):
+        try:
+            r = subprocess.run(uv + args, capture_output=True, text=True, timeout=30)
+            d = (r.stdout or "").strip().splitlines()
+            if r.returncode == 0 and d and os.path.isdir(d[-1]):
+                dirs.append(d[-1])
+        except Exception:
+            pass
+    return dirs
+
+
+def _explain_error(text):
+    """よくある失敗の原因を、やさしい日本語の対処法にする"""
+    t = text.lower()
+    if any(k in t for k in ("no space left", "os error 112", "os error 28", "disk full", "not enough space")):
+        return "PCの空き容量が足りません。2GB以上空けてから「もう一度試す」を押してください。"
+    if any(k in t for k in ("access is denied", "os error 5", "permission denied", "being used by another process", "os error 32")):
+        return "ファイルの書き込みが止められました。ウイルス対策ソフトが止めている可能性があります。少し待ってから「もう一度試す」を押してください。"
+    if any(k in t for k in ("timed out", "timeout", "connect", "dns", "resolve", "network", "ssl", "certificate", "tls", "failed to fetch", "error sending request", "connection")):
+        return "インターネットからダウンロードできませんでした。インターネットにつながっているか確認して、「もう一度試す」を押してください（会社や学校のネットワークでは止められることがあります）。"
+    return "準備に失敗しました。PCを再起動してから「もう一度試す」を押してください。"
+
+
+def _set(**kw):
+    HOMR_STATE.update(kw)
+
+
+def install_homr():
+    """homr の部品と読み取りモデルをダウンロードする（初回のみ・数分〜十数分）"""
+    if HOMR_STATE["state"] == "installing":
+        return
+    uv = uv_cmd()
+    if not uv:
+        _set(state="error", error="uv が見つかりません", hint="補助プログラムを起動し直してください。")
+        return
+    _set(state="installing", percent=1, phase="準備を始めています…", error="", hint="", started=time.time())
+    say("homr のインストールを始めます（初回のみ）")
+    dirs = _uv_dirs(uv)
+    base_mb = _dir_mb(dirs)
+    stop = threading.Event()
+    model = {"active": False, "done": 0, "count": 3}
+
+    def watch():
+        while not stop.wait(1.5):
+            if model["active"]:
+                continue
+            grown = max(0.0, _dir_mb(dirs) - base_mb)
+            pct = min(85, 2 + grown / HOMR_EXPECTED_MB * 85)
+            if pct > HOMR_STATE["percent"]:
+                _set(percent=round(pct), phase="読み取りソフトの部品をダウンロード中（%d MB）" % grown)
+    threading.Thread(target=watch, daemon=True).start()
+    tail = []
+    try:
+        proc = subprocess.Popen(uv + HOMR_CMD + ["--init"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                text=True, encoding="utf-8", errors="replace", bufsize=1)
+        buf = ""
+        while True:
+            ch = proc.stdout.read(1)
+            if not ch:
+                break
+            if ch not in "\r\n)":
+                buf += ch
+                continue
+            line = (buf + (ch if ch == ")" else "")).strip()
+            buf = ""
+            if not line:
+                continue
+            m = re.search(r"Downloading (\d+) models", line)
+            if m:
+                model.update(active=True, count=int(m.group(1)), done=0)
+            m = re.search(r"Downloaded (\d+) of (\d+) MB \((\d+)%\)", line)
+            if m:
+                model["active"] = True
+                frac = (model["done"] + int(m.group(3)) / 100) / max(1, model["count"])
+                _set(percent=max(HOMR_STATE["percent"], round(86 + frac * 12)),
+                     phase="読み取りモデルをダウンロード中（%d / %d 個目）" % (model["done"] + 1, model["count"]))
+                if m.group(3) == "100":
+                    model["done"] += 1
+                continue
+            tail.append(line)
+            tail[:] = tail[-30:]
+            if "Init finished" in line:
+                _set(percent=99, phase="仕上げ中…")
+        rc = proc.wait()
+        stop.set()
+        if rc == 0:
+            os.makedirs(DATA_DIR, exist_ok=True)
+            with open(HOMR_MARKER, "w", encoding="utf-8") as f:
+                json.dump({"version": VERSION, "time": time.time()}, f)
+            _set(state="ready", percent=100, phase="準備完了")
+            say("homr の準備ができました。")
+        else:
+            err = "\n".join(tail[-8:])
+            _set(state="error", error=err[-500:], hint=_explain_error(err))
+            say("※ homr の準備に失敗しました: " + err[-300:])
+    except Exception as e:  # noqa: BLE001
+        stop.set()
+        _set(state="error", error=str(e), hint=_explain_error(str(e)))
+
+
+def check_homr():
+    """起動時：以前に準備が終わっているか確かめる（ネットにはつながない）"""
+    uv = uv_cmd()
+    if not uv:
+        _set(state="error", error="uv が見つかりません", hint="補助プログラムを起動し直してください。")
+        return
+    if not os.path.exists(HOMR_MARKER):
+        _set(state="not_installed")
+        return
+    try:
+        r = subprocess.run(uv + ["--offline"] + HOMR_CMD + ["--init"], capture_output=True, text=True, timeout=300)
+        _set(state="ready" if r.returncode == 0 else "not_installed", percent=100 if r.returncode == 0 else 0)
+    except Exception:
+        _set(state="not_installed")
+
+
+# ---------------- Audiveris ----------------
+def find_audiveris():
+    cands = []
+    if AUDIVERIS_OVERRIDE:
+        cands.append(AUDIVERIS_OVERRIDE)
+    if os.environ.get("PKM_AUDIVERIS"):
+        cands.append(os.environ["PKM_AUDIVERIS"])
+    for name in ("Audiveris", "audiveris"):
+        w = shutil.which(name)
+        if w:
+            cands.append(w)
+    if os.name == "nt":
+        for env in ("ProgramFiles", "ProgramW6432", "ProgramFiles(x86)", "LOCALAPPDATA"):
+            base = os.environ.get(env)
+            if base:
+                cands += [os.path.join(base, "Audiveris", "Audiveris.exe"), os.path.join(base, "Programs", "Audiveris", "Audiveris.exe")]
+        cands.append(os.path.expanduser(r"~\scoop\apps\audiveris\current\Audiveris.exe"))
+    elif sys.platform == "darwin":
+        for base in ("/Applications", os.path.expanduser("~/Applications")):
+            cands += glob.glob(os.path.join(base, "Audiveris*.app", "Contents", "MacOS", "Audiveris*"))
+    else:
+        cands += ["/opt/audiveris/bin/Audiveris", "/usr/bin/audiveris", "/usr/local/bin/audiveris"]
+    for c in cands:
+        if c and os.path.isfile(c):
+            return [c]
+    # Linux の Flatpak 版
+    if shutil.which("flatpak"):
+        try:
+            r = subprocess.run(["flatpak", "info", "org.audiveris.audiveris"], capture_output=True, timeout=10)
+            if r.returncode == 0:
+                return ["flatpak", "run", "org.audiveris.audiveris"]
+        except Exception:
+            pass
+    return None
+
+
+def engines_status():
+    hs = HOMR_STATE["state"]
+    homr_note = {"checking": "確認中", "not_installed": "まだインストールされていません", "installing": "インストール中 %d%%" % HOMR_STATE["percent"],
+                 "error": "インストールに失敗しました", "ready": ""}.get(hs, "")
+    return {
+        "homr": {"available": hs == "ready", "ready": hs == "ready", "installable": bool(uv_cmd()), "note": homr_note,
+                 "label": "homr（いちばんおすすめ）", "install": {k: HOMR_STATE[k] for k in ("state", "percent", "phase", "error", "hint")},
+                 "elapsed": round(time.time() - HOMR_STATE["started"]) if hs == "installing" else 0},
+        "audiveris": {"available": find_audiveris() is not None, "note": "" if find_audiveris() else "Audiveris がインストールされていません", "label": "Audiveris（スキャン・印刷楽譜向け）"},
+        "oemer": {"available": find_oemer() is not None, "note": "" if find_oemer() else ("Python 3.10〜3.13 が必要です" if not py_ok_for_oemer() else "インストールされていません"), "label": "oemer"},
+    }
+
+
+def read_musicxml_from(folder):
+    """出力フォルダから MusicXML の文字列を取り出す（.mxl は展開）"""
+    xmls = glob.glob(os.path.join(folder, "**", "*.musicxml"), recursive=True) + \
+        [p for p in glob.glob(os.path.join(folder, "**", "*.xml"), recursive=True) if not p.endswith("container.xml")]
+    if xmls:
+        with open(sorted(xmls)[0], "rb") as f:
+            return f.read()
+    for mxl in sorted(glob.glob(os.path.join(folder, "**", "*.mxl"), recursive=True)):
+        with zipfile.ZipFile(mxl) as z:
+            root = None
+            if "META-INF/container.xml" in z.namelist():
+                import xml.etree.ElementTree as ET
+                c = ET.fromstring(z.read("META-INF/container.xml"))
+                for el in c.iter():
+                    if el.tag.endswith("rootfile") and el.get("full-path"):
+                        root = el.get("full-path")
+                        break
+            if not root:
+                root = next((n for n in z.namelist() if not n.startswith("META-INF") and n.endswith(".xml")), None)
+            if root:
+                return z.read(root)
+    return None
+
+
+def run_engine(engine, src, work):
+    out = os.path.join(work, "out")
+    os.makedirs(out, exist_ok=True)
+    if engine == "oemer":
+        cmd = find_oemer()
+        if not cmd:
+            raise RuntimeError("oemer が使えません（Python 3.10〜3.13 で補助プログラムを起動してください）")
+        proc = subprocess.run(cmd + [src, "-o", out], capture_output=True, text=True, timeout=TIMEOUT_SEC)
+    elif engine == "homr":
+        uv = uv_cmd()
+        if not uv:
+            raise RuntimeError("homr を動かす uv が入っていません。補助プログラムを起動し直してください")
+        # homr は画像と同じ場所に結果を書き出す
+        img = os.path.join(out, os.path.basename(src))
+        shutil.copy(src, img)
+        proc = subprocess.run(uv + HOMR_CMD + [img], capture_output=True, text=True, timeout=TIMEOUT_SEC, cwd=out)
+    elif engine == "audiveris":
+        cmd = find_audiveris()
+        if not cmd:
+            raise RuntimeError("Audiveris が見つかりません。https://github.com/Audiveris/audiveris/releases からインストールしてください（入れた場所が特殊な場合は --audiveris で指定）")
+        proc = subprocess.run(cmd + ["-batch", "-transcribe", "-export", "-output", out, src], capture_output=True, text=True, timeout=TIMEOUT_SEC)
+    else:
+        raise RuntimeError("不明なエンジンです: " + engine)
+    xml = read_musicxml_from(out)
+    if xml is None:
+        tail = (proc.stderr or proc.stdout or "")[-600:]
+        hint = ""
+        if proc.returncode < 0 or proc.returncode in (137, -9):
+            hint = "（メモリ不足で止まった可能性があります。ほかのアプリを閉じてもう一度お試しください）"
+        elif proc.returncode == 0:
+            hint = "（楽譜を見つけられなかった可能性があります。画像を大きく・まっすぐにして試してください）"
+        raise RuntimeError(f"{engine} の読み取りに失敗しました（終了コード {proc.returncode}）{hint}: {tail}")
+    return xml
+
+
+class Handler(BaseHTTPRequestHandler):
+    server_version = "pkm-omr-helper/" + VERSION
+
+    def log_message(self, fmt, *args):
+        sys.stderr.write("[helper] " + (fmt % args) + "\n")
+
+    def cors(self):
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "content-type")
+        self.send_header("Access-Control-Allow-Private-Network", "true")
+
+    def reply(self, code, body, ctype="application/json; charset=utf-8"):
+        data = body if isinstance(body, bytes) else json.dumps(body, ensure_ascii=False).encode("utf-8")
+        self.send_response(code)
+        self.cors()
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def do_OPTIONS(self):
+        self.send_response(204)
+        self.cors()
+        self.end_headers()
+
+    def do_GET(self):
+        path = urlparse(self.path).path.rstrip("/")
+        if path in ("", "/health"):
+            eng = engines_status()
+            self.reply(200, {"ok": True, "version": VERSION, "engines": eng,
+                             "available": any(e["available"] for e in eng.values()), "engine": "multi"})
+        else:
+            self.reply(404, {"error": "not found"})
+
+    def do_POST(self):
+        u = urlparse(self.path)
+        if u.path.rstrip("/") == "/homr/install":
+            if HOMR_STATE["state"] != "installing":
+                threading.Thread(target=install_homr, daemon=True).start()
+            return self.reply(200, {"ok": True})
+        if u.path.rstrip("/") != "/omr":
+            return self.reply(404, {"error": "not found"})
+        engine0 = (parse_qs(u.query).get("engine") or ["oemer"])[0].lower()
+        if engine0 == "homr" and HOMR_STATE["state"] != "ready":
+            return self.reply(409, {"error": "homr はまだインストールされていません。「homr を準備する」からインストールしてください", "code": "homr_not_ready"})
+        engine = (parse_qs(u.query).get("engine") or ["oemer"])[0].lower()
+        n = int(self.headers.get("Content-Length") or 0)
+        if n <= 0 or n > MAX_BYTES:
+            return self.reply(400, {"error": "画像が空か、大きすぎます"})
+        data = self.rfile.read(n)
+        ctype = (self.headers.get("Content-Type") or "").lower()
+        ext = ".png" if "png" in ctype else ".jpg"
+        work = tempfile.mkdtemp(prefix="pkm-omr-")
+        try:
+            src = os.path.join(work, "page" + ext)
+            with open(src, "wb") as f:
+                f.write(data)
+            say(f"[{engine}] 読み取り中…")
+            with LOCK:
+                xml = run_engine(engine, src, work)
+            say(f"[{engine}] 完了")
+            return self.reply(200, xml, "application/vnd.recordare.musicxml+xml")
+        except subprocess.TimeoutExpired:
+            return self.reply(504, {"error": "時間がかかりすぎたため中止しました"})
+        except Exception as e:  # noqa: BLE001
+            say(f"[{engine}] 失敗: {e}")
+            return self.reply(500, {"error": str(e)})
+        finally:
+            shutil.rmtree(work, ignore_errors=True)
+
+
+def ensure_setup():
+    """初回だけ必要な部品をインストールする"""
+    need = []
+    if not uv_cmd():
+        need.append(("homr 用の uv", ["uv"]))
+    if py_ok_for_oemer() and not oemer_ok():
+        need.append(("oemer", None))
+    if not need:
+        return
+    say("初回のみ：必要な部品をインストールします（数分かかります）…")
+    for name, pkgs in need:
+        if pkgs:
+            ok = pip_install(pkgs)
+        else:
+            ok = pip_install(["--no-deps", "oemer"]) and pip_install(OEMER_DEPS)
+        if not ok:
+            say(f"※ {name} のインストールに失敗しました。インターネット接続を確認して、もう一度起動してください。")
+    importlib.invalidate_caches()
+
+
+def _console_utf8():
+    for st in (sys.stdout, sys.stderr):
+        try:
+            st.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
+
+def main():
+    global AUDIVERIS_OVERRIDE
+    _console_utf8()
+    ap = argparse.ArgumentParser(description="楽譜→鍵盤マーカー 補助プログラム")
+    ap.add_argument("--port", type=int, default=8765)
+    ap.add_argument("--audiveris", help="Audiveris の実行ファイルの場所")
+    ap.add_argument("--no-setup", action="store_true", help="インストールの確認をしない")
+    ap.add_argument("--no-homr-prepare", action="store_true", help=argparse.SUPPRESS)
+    ap.add_argument("--install-homr", action="store_true", help="起動と同時に homr をインストールする")
+    args = ap.parse_args()
+    AUDIVERIS_OVERRIDE = args.audiveris
+    say("楽譜→鍵盤マーカー 補助プログラム " + VERSION)
+    if not py_ok_for_oemer():
+        say("※ この Python（%d.%d）では oemer は使えません（homr・Audiveris は使えます）。" % sys.version_info[:2])
+    if not args.no_setup:
+        ensure_setup()
+    st = engines_status()
+    for key, e in st.items():
+        if key == "homr":
+            say("  ・homr（いちばんおすすめ）：インストール済みか確認しています")
+            continue
+        mark = "使えます" if e["available"] else "使えません（" + e["note"] + "）"
+        say(f"  ・{e['label']}：{mark}")
+    threading.Thread(target=check_homr, daemon=True).start()
+    if args.install_homr:
+        threading.Thread(target=install_homr, daemon=True).start()
+    srv = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
+    say(f"楽譜→鍵盤マーカー 補助プログラムを起動しました： http://127.0.0.1:{args.port}")
+    say("このウィンドウを開いている間、鍵盤マーカーから専用エンジンを使えます。終了は Ctrl+C。")
+    try:
+        srv.serve_forever()
+    except KeyboardInterrupt:
+        pass
+
+
+if __name__ == "__main__":
+    main()
+</script>
+  <script type="text/plain" id="helper-launcher">@echo off
+chcp 65001 >nul
+setlocal
+title 楽譜→鍵盤マーカー 補助プログラム
+set "PKM=%LOCALAPPDATA%\PianoKeyMarker"
+set "PKM_SELF=%~f0"
+if not exist "%PKM%" mkdir "%PKM%"
+set "UV=%PKM%\uv.exe"
+
+echo.
+echo  ==============================================
+echo    楽譜→鍵盤マーカー 補助プログラム
+echo  ==============================================
+echo   このウィンドウは、楽譜を読み取る間は開いたままにしてください。
+echo   （最小化しても大丈夫です。閉じると読み取りができなくなります）
+echo.
+
+if exist "%UV%" goto haveuv
+echo  [準備] 必要な道具をダウンロードしています（初回だけ・1分ほど）...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; $env:UV_INSTALL_DIR=(Join-Path $env:LOCALAPPDATA 'PianoKeyMarker'); $env:UV_NO_MODIFY_PATH='1'; irm https://astral.sh/uv/install.ps1 | iex"
+if exist "%PKM%\bin\uv.exe" copy /y "%PKM%\bin\uv.exe" "%UV%" >nul
+if exist "%UV%" goto haveuv
+echo  [準備] 別の方法でダウンロードしています...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; $z=Join-Path $env:TEMP 'pkm-uv.zip'; $d=Join-Path $env:TEMP 'pkm-uv'; Invoke-WebRequest -UseBasicParsing 'https://github.com/astral-sh/uv/releases/latest/download/uv-x86_64-pc-windows-msvc.zip' -OutFile $z; Expand-Archive -Force $z $d; Copy-Item (Get-ChildItem $d -Recurse -Filter uv.exe | Select-Object -First 1).FullName (Join-Path $env:LOCALAPPDATA 'PianoKeyMarker\uv.exe') -Force"
+if exist "%UV%" goto haveuv
+goto fail
+
+:haveuv
+rem このファイルの末尾に埋め込んだ補助プログラム本体を取り出す（毎回最新のものに置き換える）
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$t=[IO.File]::ReadAllText($env:PKM_SELF,[Text.Encoding]::UTF8); $m='###'+' PKM-HELPER-PY BEGIN '+'###'; $i=$t.LastIndexOf($m); if($i -lt 0){exit 3}; $s=$t.IndexOf([char]10,$i)+1; [IO.File]::WriteAllText((Join-Path $env:LOCALAPPDATA 'PianoKeyMarker\pkm_omr_helper.py'),$t.Substring($s),(New-Object Text.UTF8Encoding $false))"
+if errorlevel 1 goto fail
+if not exist "%PKM%\pkm_omr_helper.py" goto fail
+
+set "PATH=%PKM%;%PATH%"
+echo  補助プログラムを起動します（初回は Python の準備に1〜3分かかります）...
+echo.
+"%UV%" run --no-project --python 3.12 "%PKM%\pkm_omr_helper.py" --no-setup
+echo.
+echo  補助プログラムが終了しました。もう一度使うときは、このファイルをダブルクリックしてください。
+pause
+exit /b
+
+:fail
+echo.
+echo  準備がうまくいきませんでした。
+echo  インターネットにつながっているか確認して、もう一度このファイルを開いてください。
+echo  何度やってもうまくいかない場合は、Windowsアプリ版（exe）をお使いください（準備は不要です）。
+echo.
+pause
+exit /b
+
+### PKM-HELPER-PY BEGIN ###
+#!/usr/bin/env python3
+"""
+楽譜→鍵盤マーカー 用の補助プログラム
+楽譜読み取り専用のソフト（oemer / homr / Audiveris）をこのPCで動かし、鍵盤マーカーから使えるようにします。
+
+使い方:
+    python pkm_omr_helper.py            # http://127.0.0.1:8765 で待ち受け（初回は必要な部品を自動インストール）
+    python pkm_omr_helper.py --port 9000
+    python pkm_omr_helper.py --audiveris "C:\\path\\to\\Audiveris.exe"   # Audiveris の場所を指定
+
+エンジン:
+    homr       … いちばんおすすめ。鍵盤マーカーの画面の「homr を準備する」から初回だけインストール（約600MB）
+    Audiveris  … 印刷楽譜のスキャン向け。https://github.com/Audiveris/audiveris/releases から別途インストール
+    oemer      … Python 3.10〜3.13 のときに自動インストール
+
+このPCの中（127.0.0.1）からの接続だけを受け付けます。
+"""
+import argparse
+import glob
+import importlib
+import json
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+import threading
+import zipfile
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import urlparse, parse_qs
+
+VERSION = "2.1"
+LOCK = threading.Lock()          # 読み取りは1枚ずつ（どのエンジンもメモリを多く使うため）
+MAX_BYTES = 30 * 1024 * 1024
+TIMEOUT_SEC = 20 * 60
+AUDIVERIS_OVERRIDE = None
+# homr の導入状態  state: checking | not_installed | installing | ready | error
+HOMR_STATE = {"state": "checking", "percent": 0, "phase": "", "error": "", "hint": "", "started": 0.0}
+HOMR_EXPECTED_MB = 750          # 初回にダウンロード・展開される量の目安（部品＋読み取りモデル）
+DATA_DIR = os.path.join(os.path.expanduser("~"), ".pkm_omr")
+HOMR_MARKER = os.path.join(DATA_DIR, "homr_ready.json")
+
+# oemer の動作確認済みの組み合わせ（oemer の依存関係どおりに入れると新しすぎる部品が入り動かないため）
+OEMER_DEPS = ["onnxruntime==1.20.1", "opencv-python-headless<5", "matplotlib", "pillow", "scipy", "scikit-learn>=1.2", "typing-extensions"]
+HOMR_CMD = ["tool", "run", "--python", "3.12", "--from", "homr[cpu]", "homr"]
+import re
+import time
+
+
+def say(msg):
+    print(msg, flush=True)
+
+
+def py_ok_for_oemer():
+    return (3, 10) <= sys.version_info[:2] <= (3, 13)
+
+
+def pip_install(args):
+    base = [sys.executable, "-m", "pip", "install", "--disable-pip-version-check"]
+    say("  > pip install " + " ".join(args))
+    if subprocess.run(base + args).returncode == 0:
+        return True
+    # 書き込み権限がない環境では --user で再試行
+    return subprocess.run(base + ["--user"] + args).returncode == 0
+
+
+# ---------------- oemer ----------------
+def oemer_ok():
+    try:
+        for mod in ("oemer.ete", "onnxruntime", "cv2", "sklearn", "scipy", "matplotlib", "typing_extensions"):
+            importlib.import_module(mod)
+        return True
+    except Exception:
+        return False
+
+
+def find_oemer():
+    if not oemer_ok():
+        return None
+    exe = shutil.which("oemer")
+    if exe:
+        return [exe]
+    return [sys.executable, "-c", "import sys; from oemer.ete import main; sys.argv[0] = 'oemer'; main()"]
+
+
+# ---------------- homr（uv 経由） ----------------
+def uv_cmd():
+    try:
+        importlib.import_module("uv")
+        return [sys.executable, "-m", "uv"]
+    except Exception:
+        exe = shutil.which("uv")
+        return [exe] if exe else None
+
+
+def _dir_mb(paths):
+    total = 0
+    for root_dir in paths:
+        for root, _dirs, files in os.walk(root_dir):
+            for f in files:
+                try:
+                    total += os.path.getsize(os.path.join(root, f))
+                except OSError:
+                    pass
+    return total / 1048576
+
+
+def _uv_dirs(uv):
+    dirs = []
+    for args in (["cache", "dir"], ["python", "dir"], ["tool", "dir"]):
+        try:
+            r = subprocess.run(uv + args, capture_output=True, text=True, timeout=30)
+            d = (r.stdout or "").strip().splitlines()
+            if r.returncode == 0 and d and os.path.isdir(d[-1]):
+                dirs.append(d[-1])
+        except Exception:
+            pass
+    return dirs
+
+
+def _explain_error(text):
+    """よくある失敗の原因を、やさしい日本語の対処法にする"""
+    t = text.lower()
+    if any(k in t for k in ("no space left", "os error 112", "os error 28", "disk full", "not enough space")):
+        return "PCの空き容量が足りません。2GB以上空けてから「もう一度試す」を押してください。"
+    if any(k in t for k in ("access is denied", "os error 5", "permission denied", "being used by another process", "os error 32")):
+        return "ファイルの書き込みが止められました。ウイルス対策ソフトが止めている可能性があります。少し待ってから「もう一度試す」を押してください。"
+    if any(k in t for k in ("timed out", "timeout", "connect", "dns", "resolve", "network", "ssl", "certificate", "tls", "failed to fetch", "error sending request", "connection")):
+        return "インターネットからダウンロードできませんでした。インターネットにつながっているか確認して、「もう一度試す」を押してください（会社や学校のネットワークでは止められることがあります）。"
+    return "準備に失敗しました。PCを再起動してから「もう一度試す」を押してください。"
+
+
+def _set(**kw):
+    HOMR_STATE.update(kw)
+
+
+def install_homr():
+    """homr の部品と読み取りモデルをダウンロードする（初回のみ・数分〜十数分）"""
+    if HOMR_STATE["state"] == "installing":
+        return
+    uv = uv_cmd()
+    if not uv:
+        _set(state="error", error="uv が見つかりません", hint="補助プログラムを起動し直してください。")
+        return
+    _set(state="installing", percent=1, phase="準備を始めています…", error="", hint="", started=time.time())
+    say("homr のインストールを始めます（初回のみ）")
+    dirs = _uv_dirs(uv)
+    base_mb = _dir_mb(dirs)
+    stop = threading.Event()
+    model = {"active": False, "done": 0, "count": 3}
+
+    def watch():
+        while not stop.wait(1.5):
+            if model["active"]:
+                continue
+            grown = max(0.0, _dir_mb(dirs) - base_mb)
+            pct = min(85, 2 + grown / HOMR_EXPECTED_MB * 85)
+            if pct > HOMR_STATE["percent"]:
+                _set(percent=round(pct), phase="読み取りソフトの部品をダウンロード中（%d MB）" % grown)
+    threading.Thread(target=watch, daemon=True).start()
+    tail = []
+    try:
+        proc = subprocess.Popen(uv + HOMR_CMD + ["--init"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                text=True, encoding="utf-8", errors="replace", bufsize=1)
+        buf = ""
+        while True:
+            ch = proc.stdout.read(1)
+            if not ch:
+                break
+            if ch not in "\r\n)":
+                buf += ch
+                continue
+            line = (buf + (ch if ch == ")" else "")).strip()
+            buf = ""
+            if not line:
+                continue
+            m = re.search(r"Downloading (\d+) models", line)
+            if m:
+                model.update(active=True, count=int(m.group(1)), done=0)
+            m = re.search(r"Downloaded (\d+) of (\d+) MB \((\d+)%\)", line)
+            if m:
+                model["active"] = True
+                frac = (model["done"] + int(m.group(3)) / 100) / max(1, model["count"])
+                _set(percent=max(HOMR_STATE["percent"], round(86 + frac * 12)),
+                     phase="読み取りモデルをダウンロード中（%d / %d 個目）" % (model["done"] + 1, model["count"]))
+                if m.group(3) == "100":
+                    model["done"] += 1
+                continue
+            tail.append(line)
+            tail[:] = tail[-30:]
+            if "Init finished" in line:
+                _set(percent=99, phase="仕上げ中…")
+        rc = proc.wait()
+        stop.set()
+        if rc == 0:
+            os.makedirs(DATA_DIR, exist_ok=True)
+            with open(HOMR_MARKER, "w", encoding="utf-8") as f:
+                json.dump({"version": VERSION, "time": time.time()}, f)
+            _set(state="ready", percent=100, phase="準備完了")
+            say("homr の準備ができました。")
+        else:
+            err = "\n".join(tail[-8:])
+            _set(state="error", error=err[-500:], hint=_explain_error(err))
+            say("※ homr の準備に失敗しました: " + err[-300:])
+    except Exception as e:  # noqa: BLE001
+        stop.set()
+        _set(state="error", error=str(e), hint=_explain_error(str(e)))
+
+
+def check_homr():
+    """起動時：以前に準備が終わっているか確かめる（ネットにはつながない）"""
+    uv = uv_cmd()
+    if not uv:
+        _set(state="error", error="uv が見つかりません", hint="補助プログラムを起動し直してください。")
+        return
+    if not os.path.exists(HOMR_MARKER):
+        _set(state="not_installed")
+        return
+    try:
+        r = subprocess.run(uv + ["--offline"] + HOMR_CMD + ["--init"], capture_output=True, text=True, timeout=300)
+        _set(state="ready" if r.returncode == 0 else "not_installed", percent=100 if r.returncode == 0 else 0)
+    except Exception:
+        _set(state="not_installed")
+
+
+# ---------------- Audiveris ----------------
+def find_audiveris():
+    cands = []
+    if AUDIVERIS_OVERRIDE:
+        cands.append(AUDIVERIS_OVERRIDE)
+    if os.environ.get("PKM_AUDIVERIS"):
+        cands.append(os.environ["PKM_AUDIVERIS"])
+    for name in ("Audiveris", "audiveris"):
+        w = shutil.which(name)
+        if w:
+            cands.append(w)
+    if os.name == "nt":
+        for env in ("ProgramFiles", "ProgramW6432", "ProgramFiles(x86)", "LOCALAPPDATA"):
+            base = os.environ.get(env)
+            if base:
+                cands += [os.path.join(base, "Audiveris", "Audiveris.exe"), os.path.join(base, "Programs", "Audiveris", "Audiveris.exe")]
+        cands.append(os.path.expanduser(r"~\scoop\apps\audiveris\current\Audiveris.exe"))
+    elif sys.platform == "darwin":
+        for base in ("/Applications", os.path.expanduser("~/Applications")):
+            cands += glob.glob(os.path.join(base, "Audiveris*.app", "Contents", "MacOS", "Audiveris*"))
+    else:
+        cands += ["/opt/audiveris/bin/Audiveris", "/usr/bin/audiveris", "/usr/local/bin/audiveris"]
+    for c in cands:
+        if c and os.path.isfile(c):
+            return [c]
+    # Linux の Flatpak 版
+    if shutil.which("flatpak"):
+        try:
+            r = subprocess.run(["flatpak", "info", "org.audiveris.audiveris"], capture_output=True, timeout=10)
+            if r.returncode == 0:
+                return ["flatpak", "run", "org.audiveris.audiveris"]
+        except Exception:
+            pass
+    return None
+
+
+def engines_status():
+    hs = HOMR_STATE["state"]
+    homr_note = {"checking": "確認中", "not_installed": "まだインストールされていません", "installing": "インストール中 %d%%" % HOMR_STATE["percent"],
+                 "error": "インストールに失敗しました", "ready": ""}.get(hs, "")
+    return {
+        "homr": {"available": hs == "ready", "ready": hs == "ready", "installable": bool(uv_cmd()), "note": homr_note,
+                 "label": "homr（いちばんおすすめ）", "install": {k: HOMR_STATE[k] for k in ("state", "percent", "phase", "error", "hint")},
+                 "elapsed": round(time.time() - HOMR_STATE["started"]) if hs == "installing" else 0},
+        "audiveris": {"available": find_audiveris() is not None, "note": "" if find_audiveris() else "Audiveris がインストールされていません", "label": "Audiveris（スキャン・印刷楽譜向け）"},
+        "oemer": {"available": find_oemer() is not None, "note": "" if find_oemer() else ("Python 3.10〜3.13 が必要です" if not py_ok_for_oemer() else "インストールされていません"), "label": "oemer"},
+    }
+
+
+def read_musicxml_from(folder):
+    """出力フォルダから MusicXML の文字列を取り出す（.mxl は展開）"""
+    xmls = glob.glob(os.path.join(folder, "**", "*.musicxml"), recursive=True) + \
+        [p for p in glob.glob(os.path.join(folder, "**", "*.xml"), recursive=True) if not p.endswith("container.xml")]
+    if xmls:
+        with open(sorted(xmls)[0], "rb") as f:
+            return f.read()
+    for mxl in sorted(glob.glob(os.path.join(folder, "**", "*.mxl"), recursive=True)):
+        with zipfile.ZipFile(mxl) as z:
+            root = None
+            if "META-INF/container.xml" in z.namelist():
+                import xml.etree.ElementTree as ET
+                c = ET.fromstring(z.read("META-INF/container.xml"))
+                for el in c.iter():
+                    if el.tag.endswith("rootfile") and el.get("full-path"):
+                        root = el.get("full-path")
+                        break
+            if not root:
+                root = next((n for n in z.namelist() if not n.startswith("META-INF") and n.endswith(".xml")), None)
+            if root:
+                return z.read(root)
+    return None
+
+
+def run_engine(engine, src, work):
+    out = os.path.join(work, "out")
+    os.makedirs(out, exist_ok=True)
+    if engine == "oemer":
+        cmd = find_oemer()
+        if not cmd:
+            raise RuntimeError("oemer が使えません（Python 3.10〜3.13 で補助プログラムを起動してください）")
+        proc = subprocess.run(cmd + [src, "-o", out], capture_output=True, text=True, timeout=TIMEOUT_SEC)
+    elif engine == "homr":
+        uv = uv_cmd()
+        if not uv:
+            raise RuntimeError("homr を動かす uv が入っていません。補助プログラムを起動し直してください")
+        # homr は画像と同じ場所に結果を書き出す
+        img = os.path.join(out, os.path.basename(src))
+        shutil.copy(src, img)
+        proc = subprocess.run(uv + HOMR_CMD + [img], capture_output=True, text=True, timeout=TIMEOUT_SEC, cwd=out)
+    elif engine == "audiveris":
+        cmd = find_audiveris()
+        if not cmd:
+            raise RuntimeError("Audiveris が見つかりません。https://github.com/Audiveris/audiveris/releases からインストールしてください（入れた場所が特殊な場合は --audiveris で指定）")
+        proc = subprocess.run(cmd + ["-batch", "-transcribe", "-export", "-output", out, src], capture_output=True, text=True, timeout=TIMEOUT_SEC)
+    else:
+        raise RuntimeError("不明なエンジンです: " + engine)
+    xml = read_musicxml_from(out)
+    if xml is None:
+        tail = (proc.stderr or proc.stdout or "")[-600:]
+        hint = ""
+        if proc.returncode < 0 or proc.returncode in (137, -9):
+            hint = "（メモリ不足で止まった可能性があります。ほかのアプリを閉じてもう一度お試しください）"
+        elif proc.returncode == 0:
+            hint = "（楽譜を見つけられなかった可能性があります。画像を大きく・まっすぐにして試してください）"
+        raise RuntimeError(f"{engine} の読み取りに失敗しました（終了コード {proc.returncode}）{hint}: {tail}")
+    return xml
+
+
+class Handler(BaseHTTPRequestHandler):
+    server_version = "pkm-omr-helper/" + VERSION
+
+    def log_message(self, fmt, *args):
+        sys.stderr.write("[helper] " + (fmt % args) + "\n")
+
+    def cors(self):
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "content-type")
+        self.send_header("Access-Control-Allow-Private-Network", "true")
+
+    def reply(self, code, body, ctype="application/json; charset=utf-8"):
+        data = body if isinstance(body, bytes) else json.dumps(body, ensure_ascii=False).encode("utf-8")
+        self.send_response(code)
+        self.cors()
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def do_OPTIONS(self):
+        self.send_response(204)
+        self.cors()
+        self.end_headers()
+
+    def do_GET(self):
+        path = urlparse(self.path).path.rstrip("/")
+        if path in ("", "/health"):
+            eng = engines_status()
+            self.reply(200, {"ok": True, "version": VERSION, "engines": eng,
+                             "available": any(e["available"] for e in eng.values()), "engine": "multi"})
+        else:
+            self.reply(404, {"error": "not found"})
+
+    def do_POST(self):
+        u = urlparse(self.path)
+        if u.path.rstrip("/") == "/homr/install":
+            if HOMR_STATE["state"] != "installing":
+                threading.Thread(target=install_homr, daemon=True).start()
+            return self.reply(200, {"ok": True})
+        if u.path.rstrip("/") != "/omr":
+            return self.reply(404, {"error": "not found"})
+        engine0 = (parse_qs(u.query).get("engine") or ["oemer"])[0].lower()
+        if engine0 == "homr" and HOMR_STATE["state"] != "ready":
+            return self.reply(409, {"error": "homr はまだインストールされていません。「homr を準備する」からインストールしてください", "code": "homr_not_ready"})
+        engine = (parse_qs(u.query).get("engine") or ["oemer"])[0].lower()
+        n = int(self.headers.get("Content-Length") or 0)
+        if n <= 0 or n > MAX_BYTES:
+            return self.reply(400, {"error": "画像が空か、大きすぎます"})
+        data = self.rfile.read(n)
+        ctype = (self.headers.get("Content-Type") or "").lower()
+        ext = ".png" if "png" in ctype else ".jpg"
+        work = tempfile.mkdtemp(prefix="pkm-omr-")
+        try:
+            src = os.path.join(work, "page" + ext)
+            with open(src, "wb") as f:
+                f.write(data)
+            say(f"[{engine}] 読み取り中…")
+            with LOCK:
+                xml = run_engine(engine, src, work)
+            say(f"[{engine}] 完了")
+            return self.reply(200, xml, "application/vnd.recordare.musicxml+xml")
+        except subprocess.TimeoutExpired:
+            return self.reply(504, {"error": "時間がかかりすぎたため中止しました"})
+        except Exception as e:  # noqa: BLE001
+            say(f"[{engine}] 失敗: {e}")
+            return self.reply(500, {"error": str(e)})
+        finally:
+            shutil.rmtree(work, ignore_errors=True)
+
+
+def ensure_setup():
+    """初回だけ必要な部品をインストールする"""
+    need = []
+    if not uv_cmd():
+        need.append(("homr 用の uv", ["uv"]))
+    if py_ok_for_oemer() and not oemer_ok():
+        need.append(("oemer", None))
+    if not need:
+        return
+    say("初回のみ：必要な部品をインストールします（数分かかります）…")
+    for name, pkgs in need:
+        if pkgs:
+            ok = pip_install(pkgs)
+        else:
+            ok = pip_install(["--no-deps", "oemer"]) and pip_install(OEMER_DEPS)
+        if not ok:
+            say(f"※ {name} のインストールに失敗しました。インターネット接続を確認して、もう一度起動してください。")
+    importlib.invalidate_caches()
+
+
+def _console_utf8():
+    for st in (sys.stdout, sys.stderr):
+        try:
+            st.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
+
+def main():
+    global AUDIVERIS_OVERRIDE
+    _console_utf8()
+    ap = argparse.ArgumentParser(description="楽譜→鍵盤マーカー 補助プログラム")
+    ap.add_argument("--port", type=int, default=8765)
+    ap.add_argument("--audiveris", help="Audiveris の実行ファイルの場所")
+    ap.add_argument("--no-setup", action="store_true", help="インストールの確認をしない")
+    ap.add_argument("--no-homr-prepare", action="store_true", help=argparse.SUPPRESS)
+    ap.add_argument("--install-homr", action="store_true", help="起動と同時に homr をインストールする")
+    args = ap.parse_args()
+    AUDIVERIS_OVERRIDE = args.audiveris
+    say("楽譜→鍵盤マーカー 補助プログラム " + VERSION)
+    if not py_ok_for_oemer():
+        say("※ この Python（%d.%d）では oemer は使えません（homr・Audiveris は使えます）。" % sys.version_info[:2])
+    if not args.no_setup:
+        ensure_setup()
+    st = engines_status()
+    for key, e in st.items():
+        if key == "homr":
+            say("  ・homr（いちばんおすすめ）：インストール済みか確認しています")
+            continue
+        mark = "使えます" if e["available"] else "使えません（" + e["note"] + "）"
+        say(f"  ・{e['label']}：{mark}")
+    threading.Thread(target=check_homr, daemon=True).start()
+    if args.install_homr:
+        threading.Thread(target=install_homr, daemon=True).start()
+    srv = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
+    say(f"楽譜→鍵盤マーカー 補助プログラムを起動しました： http://127.0.0.1:{args.port}")
+    say("このウィンドウを開いている間、鍵盤マーカーから専用エンジンを使えます。終了は Ctrl+C。")
+    try:
+        srv.serve_forever()
+    except KeyboardInterrupt:
+        pass
+
+
+if __name__ == "__main__":
+    main()
+</script>
+  <script src="js/main.js?v=1793156517533"></script>
 </body>
 </html>
