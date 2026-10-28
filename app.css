@@ -61,7 +61,9 @@ input.num { width: 52px; }
 .brand img { width: 22px; height: 22px; }
 .title-input {
   background: transparent !important; border: 1px solid transparent !important; color: var(--head-ink) !important;
-  font-size: 16px; font-weight: 600; min-width: 220px; padding: 4px 8px !important;
+  font-size: 16px; font-weight: 600; padding: 4px 8px !important;
+  /* 曲名欄は小さめから始めて余った幅に広がる（ボタンが入る幅なら上部バーを1段に保つ） */
+  flex: 1 1 140px; width: 140px; min-width: 140px; max-width: 360px;
 }
 .title-input:hover, .title-input:focus { border-color: #4a5268 !important; outline: none; }
 
@@ -162,7 +164,7 @@ input.num { width: 52px; }
 .hand-toggle button.on[data-hand=L] { background: var(--L); border-color: var(--L); }
 
 /* ---- keyboard ---- */
-.keyboard { position: relative; height: 128px; background: #111; border-radius: 4px; overflow: hidden; user-select: none; touch-action: none; }
+.keyboard { position: relative; height: var(--kb-h, 128px); background: #111; border-radius: 4px; overflow: hidden; user-select: none; touch-action: none; }
 .key { position: absolute; top: 0; cursor: pointer; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; transition: background .06s; }
 .key.white { height: 100%; background: linear-gradient(#fdfdfb, #f1efe9); border-right: 1px solid #b9b4a8; border-radius: 0 0 4px 4px; z-index: 1; }
 .key.black { height: 62%; background: linear-gradient(#2a2a2a, #111); border-radius: 0 0 3px 3px; z-index: 2; box-shadow: inset 0 -3px 0 #000, 0 2px 2px rgba(0,0,0,.4); }
@@ -235,6 +237,7 @@ input.num { width: 52px; }
   .kb-bar { gap: 8px; row-gap: 4px; }
   .legend { gap: 6px; }
   .keyboard { height: 84px; }
+  .splitter { display: none; } /* スマホ幅は画面全体がスクロールする配置のため、境目の調整は使わない */
   .analyze-bar { gap: 4px; padding: 6px; }
   .model-chip { max-width: 110px; }
 }
@@ -352,7 +355,8 @@ body.desktop .web-only { display: none !important; }
 .dock > .timeline { order: 1; } .dock > .transport { order: 2; } .dock > .kb-bar { order: 3; } .dock > .keyboard { order: 4; }
 body.kb-top .topbar { order: 0; }
 body.kb-top .dock { order: 1; padding: 10px 10px 6px; }
-body.kb-top .workspace { order: 2; }
+body.kb-top .splitter { order: 2; }
+body.kb-top .workspace { order: 3; }
 body.kb-top .dock > .keyboard { order: 1; }
 body.kb-top .dock > .kb-bar { order: 2; padding: 6px 0 4px; }
 body.kb-top .dock > .transport { order: 3; }
@@ -437,3 +441,17 @@ button.linklike { background: none; border: none; color: #6b6355; text-decoratio
 
 /* 無料版（Chrome拡張機能版）で制限中の機能 */
 .pro-locked::after { content: " 🔒"; font-size: .85em; }
+
+/* 楽譜の画面と鍵盤の画面の境目（ドラッグで上下の広さを変える） */
+.splitter {
+  flex: 0 0 auto; height: 8px; cursor: row-resize; touch-action: none;
+  background: var(--head); position: relative; outline: none;
+}
+.splitter::before {
+  content: ""; position: absolute; left: 50%; top: 50%; width: 48px; height: 3px; margin: -1.5px 0 0 -24px;
+  border-radius: 2px; background: #5b6378; transition: background .15s, width .15s, margin .15s;
+}
+.splitter:hover::before, .splitter:focus-visible::before, .splitter.dragging::before {
+  background: var(--accent); width: 96px; margin-left: -48px;
+}
+body.resizing, body.resizing * { cursor: row-resize !important; user-select: none !important; }
