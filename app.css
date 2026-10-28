@@ -496,3 +496,41 @@ body.resizing, body.resizing * { cursor: row-resize !important; user-select: non
 /* スマホ・タブレットでは「スマホから送る」関連の案内を出さない */
 .is-mobile .phone-guide, .is-mobile .pc-only { display: none !important; }
 #askBody { white-space: pre-line; }
+
+/* スマホ・タブレットで縦向きのときは「横向きにしてください」で覆う（main.js initLandscapeOnly） */
+.rotate-overlay { display: none; }
+@media (orientation: portrait) {
+  .is-mobile .rotate-overlay {
+    display: flex; position: fixed; inset: 0; z-index: 2147483647;
+    flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+    padding: 24px; text-align: center;
+    background: #1d2433; color: #fff;
+  }
+  .is-mobile body { overflow: hidden; }
+}
+.rotate-icon { font-size: 56px; animation: pkm-rotate 2.4s ease-in-out infinite; }
+.rotate-title { font-size: 22px; font-weight: 700; }
+.rotate-text { font-size: 15px; line-height: 1.7; opacity: .9; }
+.rotate-hint { font-size: 13px; opacity: .65; max-width: 320px; line-height: 1.6; }
+@keyframes pkm-rotate { 0%, 30% { transform: rotate(0deg); } 60%, 100% { transform: rotate(-90deg); } }
+@media (prefers-reduced-motion: reduce) { .rotate-icon { animation: none; } }
+
+/* ---- 横向きのスマホ（画面の高さが低い） ----
+   スマホは横向き専用にしたため、高さ390px前後の画面でも使えるようにする。
+   全部を1画面に詰めると楽譜の部分が0になるので、スマホ幅と同じく
+   「楽譜と小節で1画面分 → 下へスクロールすると再生操作と鍵盤」の縦スクロール配置にする。 */
+@media (max-height: 560px) and (min-width: 641px) {
+  html { height: auto; }
+  body { height: auto; min-height: 100%; overflow-y: auto; overflow-x: hidden; font-size: 12px; }
+  .topbar { flex: 0 0 auto; padding: 4px 8px; row-gap: 4px; }
+  .workspace { flex: 0 0 auto; height: max(280px, calc(100svh - 64px)); gap: 6px; padding: 6px;
+    grid-template-columns: minmax(260px, 46%) 1fr; grid-template-rows: minmax(0, 1fr); } /* 左に楽譜画像、右に小節（横に並べる） */
+  .pane { min-height: 0; }
+  .analyze-bar { gap: 4px; padding: 6px; }
+  .dock { flex: 0 0 auto; padding: 4px 8px 8px; }
+  .transport { gap: 6px; row-gap: 4px; }
+  .tp-group { gap: 4px; }
+  .kb-bar { gap: 8px; row-gap: 4px; }
+  .keyboard { height: 110px; }
+  .splitter { display: none; }
+}
