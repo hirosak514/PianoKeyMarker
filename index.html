@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>楽譜→鍵盤マーカー</title>
-  <link rel="stylesheet" href="app.css?v=1793153389734">
+  <link rel="stylesheet" href="app.css?v=1793155268396">
 </head>
 <body>
   <header class="topbar">
@@ -39,7 +39,7 @@
         <button id="btnPhone" class="small" title="スマホで撮った写真をQRコード経由で受け取る">📱 スマホから</button>
         <button id="btnPaste" class="small" title="クリップボードの画像を貼り付け（Ctrl+V でも可）">📋 貼り付け</button>
         <button id="btnPhoto" class="small" title="傾き・台形のゆがみ・影を補正（スマホ写真向け）" disabled>✎ 写真補正</button>
-        <button id="btnSample" class="small" title="サンプル楽譜（カントリーロード・入門）を読み込んでお試しできます">🎵 サンプルを読み込む</button>
+        <button id="btnSample" class="small" title="サンプル楽譜（2曲）から選んで読み込みます。今の楽譜は置き換わります">🎵 サンプル</button>
         <div class="spacer"></div>
         <div class="btn-group small">
           <button id="zoomOut" title="縮小">−</button>
@@ -200,6 +200,18 @@
       </label>
       <div class="dlg-actions">
         <button value="close" class="primary">閉じる</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlgSamples" class="dlg">
+    <form method="dialog">
+      <h2>🎵 サンプル楽譜を選ぶ</h2>
+      <p class="muted">読み込んだら「解析する」→「▶ 再生」で試せます。</p>
+      <p id="sampleWarn" class="sample-warn">⚠ 読み込むと、今表示している楽譜の画像と、読み取った（入力した）音のデータはすべて消えて、サンプルに置き換わります。必要なら先に保存してください。</p>
+      <div id="sampleList" class="sample-list"></div>
+      <div class="dlg-actions">
+        <button value="cancel">閉じる</button>
       </div>
     </form>
   </dialog>
@@ -422,6 +434,6 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script src="lib/abcjs-basic-min.js"></script>
-  <script src="js/main.js?v=1793153389734"></script>
+  <script src="js/main.js?v=1793155268396"></script>
 </body>
 </html>

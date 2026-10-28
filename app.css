@@ -70,8 +70,8 @@ input.num { width: 52px; }
 /* ---- workspace ---- */
 .workspace { flex: 1; display: grid; grid-template-columns: minmax(320px, 44%) 1fr; gap: 10px; padding: 10px; min-height: 0; }
 .pane { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
-.pane-head { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-bottom: 1px solid var(--line); }
-.page-tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+.pane-head { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-bottom: 1px solid var(--line); flex-wrap: wrap; row-gap: 4px; }
+.page-tabs { display: flex; gap: 4px; flex-wrap: wrap; flex: 0 0 auto; max-width: 100%; } /* ページが増えても縮まず、入りきらなければ折り返す */
 .page-tab { padding: 2px 4px 2px 8px; font-size: 12px; }
 .page-tab.on { background: var(--head); color: #fff; border-color: var(--head); }
 .page-tab .x { opacity: .6; padding: 0 4px; }
@@ -455,3 +455,12 @@ button.linklike { background: none; border: none; color: #6b6355; text-decoratio
   background: var(--accent); width: 96px; margin-left: -48px;
 }
 body.resizing, body.resizing * { cursor: row-resize !important; user-select: none !important; }
+
+/* サンプル楽譜を選ぶ画面 */
+.sample-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 10px; }
+.sample-card { display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 8px; text-align: left; height: auto; white-space: normal; }
+.sample-card img { width: 100%; height: 150px; object-fit: cover; object-position: top; border: 1px solid var(--line); border-radius: 4px; background: #fff; }
+.sample-card .t { font-weight: 700; font-size: 14px; }
+.sample-card .s { color: var(--muted); font-size: 12px; line-height: 1.4; }
+.sample-card:hover { border-color: var(--accent); }
+.sample-warn { color: #9a3412; background: #fff4e6; border: 1px solid #f0c48a; border-radius: 6px; padding: 6px 10px; font-size: 12px; }
