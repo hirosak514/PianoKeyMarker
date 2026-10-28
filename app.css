@@ -434,3 +434,6 @@ button.linklike { background: none; border: none; color: #6b6355; text-decoratio
 @media (max-width: 640px) {
   .tour-card { font-size: 13px; padding: 12px 14px; }
 }
+
+/* 無料版（Chrome拡張機能版）で制限中の機能 */
+.pro-locked::after { content: " 🔒"; font-size: .85em; }

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>楽譜→鍵盤マーカー</title>
-  <link rel="stylesheet" href="app.css?v=1793144693230">
+  <link rel="stylesheet" href="app.css?v=1793152347330">
 </head>
 <body>
   <header class="topbar">
@@ -203,6 +203,48 @@
     </form>
   </dialog>
 
+  <dialog id="dlgAnalyzeScope" class="dlg">
+    <form method="dialog">
+      <h2>解析済みのページがあります</h2>
+      <p>解析済み：<b id="scopeDone"></b>　／　まだ解析していない：<b id="scopeNew"></b></p>
+      <p class="muted">「新しいページだけ解析する」なら、解析済みのページ（手で直した内容も含む）はそのまま残り、新しいページの小節がページ順につながって1曲になります。「全部やり直す」を選ぶと、解析済みのページも読み取り直して置き換えます。</p>
+      <div class="dlg-actions">
+        <button value="cancel">キャンセル</button>
+        <button value="all" id="btnScopeAll">全部やり直す</button>
+        <button value="new" id="btnScopeNew" class="primary">新しいページだけ解析する</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlgPro" class="dlg">
+    <form method="dialog">
+      <h2>🔒 Pro版の機能です</h2>
+      <p>「<b id="proFeature"></b>」は、Pro版（有料）でご利用いただけます。</p>
+      <ul>
+        <li>MIDI出力（ほかの楽譜ソフト・演奏ソフトで開ける .mid ファイル）</li>
+        <li>ライブラリへの保存（複数の楽譜を保存して、あとから開く）</li>
+        <li>ファイルへの書き出し・ファイルからの読み込み（MusicXML・MIDI・JSON）</li>
+      </ul>
+      <p class="muted">無料版でも、楽譜の読み取り・解析・再生・編集はすべて使えます。編集中の楽譜は自動で保存され、次に開いたときに続きから再開できます。</p>
+      <p class="muted">Pro版の購入方法は現在準備中です。</p>
+      <div class="dlg-actions">
+        <button value="close" class="primary">閉じる</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlgSitePerm" class="dlg">
+    <form method="dialog">
+      <h2>画像の読み込みの許可</h2>
+      <p>右クリックした画像は <b id="sitePermHost"></b> にあるため、読み込むにはこのサイトへのアクセスの許可が必要です。</p>
+      <p class="muted">許可するのはこのサイトだけです（ほかのサイトにはアクセスしません）。許可はChromeの拡張機能の設定からいつでも取り消せます。</p>
+      <div class="dlg-actions">
+        <button value="cancel">キャンセル</button>
+        <button type="button" id="btnSitePermOk" class="primary">許可して読み込む</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog id="dlgHelp" class="dlg wide help">
     <form method="dialog">
       <h2>使い方と準備</h2>
@@ -379,6 +421,6 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script src="lib/abcjs-basic-min.js"></script>
-  <script src="js/main.js?v=1793144693230"></script>
+  <script src="js/main.js?v=1793152347330"></script>
 </body>
 </html>
