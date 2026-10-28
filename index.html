@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chopin the Ⅲ</title>
-  <link rel="stylesheet" href="app.css?v=1793186464305">
+  <link rel="stylesheet" href="app.css?v=1793189283994">
 </head>
 <body>
   <header class="topbar">
@@ -143,7 +143,7 @@
       <label class="chk"><input type="checkbox" id="fitRange"> 曲の音域に合わせて拡大</label>
       <button id="btnKbPos" class="small" title="鍵盤と再生操作を画面の上／下に移動">⇅ 鍵盤を上へ</button>
       <div class="spacer"></div>
-      <label class="chk"><input type="checkbox" id="editKeys" checked> 鍵盤クリックで音符を編集</label>
+      <label class="chk"><input type="checkbox" id="editKeys"> 鍵盤クリックで音符を編集</label>
       <div class="hand-toggle" role="radiogroup" aria-label="入力する手">
         <button id="handR" class="on" data-hand="R">右手</button>
         <button id="handL" data-hand="L">左手</button>
@@ -161,6 +161,7 @@
       <div id="relaySettings"></div>
       <h3>読み取り</h3>
       <label class="row chk"><input type="checkbox" id="optAutoFix"> 写真を自動補正する（傾き・ページの湾曲・影）</label>
+      <label class="row chk"><input type="checkbox" id="optReadTempo"> 楽譜のテンポ表記（♩=90 など）を読み取って、再生のテンポにする</label>
       <label class="row chk"><input type="checkbox" id="splitSystems"> 段ごとに切り分けて拡大してから読み取る（推奨）</label>
       <label class="row chk sub"><input type="checkbox" id="optOverlay"> 小節番号と五線の目盛りを描き込んでから送る（推奨）</label>
       <p class="muted opt-note">段や小節線を見つけられない画像は、ページ全体で読み取ります。</p>
@@ -1555,6 +1556,6 @@ def main():
 if __name__ == "__main__":
     main()
 </script>
-  <script src="js/main.js?v=1793186464305"></script>
+  <script src="js/main.js?v=1793189283994"></script>
 </body>
 </html>
