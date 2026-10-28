@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>楽譜→鍵盤マーカー</title>
-  <link rel="stylesheet" href="app.css?v=1793166858002">
+  <title>Chopin the Ⅲ</title>
+  <link rel="stylesheet" href="app.css?v=1793176465701">
 </head>
 <body>
   <header class="topbar">
-    <div class="brand"><img src="icons/icon32.png" alt=""><span>鍵盤マーカー</span></div>
+    <div class="brand"><img src="icons/icon32.png" alt=""><span>Chopin the Ⅲ</span></div>
     <input id="title" class="title-input" placeholder="曲名" aria-label="曲名">
     <div class="spacer"></div>
     <div class="btn-group">
@@ -329,6 +329,7 @@
         <li>保存先はブラウザと<b>開いた場所</b>ごとに別です（PC上のファイルとWeb公開版は別のライブラリになります）。</li>
       </ul>
 
+      <div class="pc-only">
       <h3>スマホから写真を送る（任意）</h3>
       <p>PCとスマホを <b>WebRTC</b> でその場で直接つなぎ、写真はサーバーに保存されずスマホからPCへ直接送られます。アカウント登録・事前準備は不要です（最初の接続仲介だけ、無料で登録不要な公開サービスを使います）。</p>
       <p class="web-only">このページを開いたまま「📱 スマホから」を押すだけで使えます。</p>
@@ -341,6 +342,7 @@
         <li>「📱 スマホから」のQRコードをスマホで読み取り、撮影して送信。</li>
       </ol>
       <p class="muted">ページ自体に秘密は含まれません（PCのPeer IDはQRコードのURLの # 以降でだけ渡されます）。QRコードは他人に見せないでください。ネットワーク環境（厳しいファイアウォール等）によっては、まれにスマホとPCが直接つながらないことがあります。</p>
+      </div>
 
       <div class="dlg-actions"><button value="close" class="primary">閉じる</button></div>
     </form>
@@ -374,10 +376,10 @@
               <ol class="su-sub su-easy">
                 <li><button type="button" id="suDlLauncher" class="primary">⬇ 補助プログラムをダウンロード</button>
                   <div class="su-hint">ブラウザに「危険なファイルの可能性があります」などと出たら、<b>「保存」</b>（または「保持」）を選びます。</div></li>
-                <li>ダウンロードしたファイル <b>「鍵盤マーカー補助プログラム」</b> を開きます（ブラウザのダウンロード一覧でクリック、またはダウンロードフォルダでダブルクリック）。
+                <li>ダウンロードしたファイル <b>「Chopin the Ⅲ 補助プログラム」</b> を開きます（ブラウザのダウンロード一覧でクリック、またはダウンロードフォルダでダブルクリック）。
                   <div class="su-hint">青い画面「WindowsによってPCが保護されました」が出たら、<b>「詳細情報」→「実行」</b>を押します。</div></li>
                 <li>黒いウィンドウが開き、自動で準備が進みます（初回だけ1〜3分）。<b>そのまま開いておけばOK</b>です。
-                  <div class="su-hint">閉じると読み取りができなくなります（最小化は大丈夫）。<b>次回からは、「解析する」を押すと自動で起動します</b>（ブラウザに「開きますか？」と出たら「開く」を押します）。鍵盤マーカーの画面を閉じると、補助プログラムも自動で終了します。</div></li>
+                  <div class="su-hint">閉じると読み取りができなくなります（最小化は大丈夫）。<b>次回からは、「解析する」を押すと自動で起動します</b>（ブラウザに「開きますか？」と出たら「開く」を押します）。Chopin the Ⅲの画面を閉じると、補助プログラムも自動で終了します。</div></li>
               </ol>
             </div>
             <details id="suMac" class="su-mac">
@@ -476,8 +478,8 @@
   <script src="lib/abcjs-basic-min.js"></script>
   <script type="text/plain" id="helper-py">#!/usr/bin/env python3
 """
-楽譜→鍵盤マーカー 用の補助プログラム
-楽譜読み取り専用のソフト（oemer / homr / Audiveris）をこのPCで動かし、鍵盤マーカーから使えるようにします。
+Chopin the Ⅲ 用の補助プログラム
+楽譜読み取り専用のソフト（oemer / homr / Audiveris）をこのPCで動かし、Chopin the Ⅲから使えるようにします。
 
 使い方:
     python pkm_omr_helper.py            # http://127.0.0.1:8765 で待ち受け（初回は必要な部品を自動インストール）
@@ -485,7 +487,7 @@
     python pkm_omr_helper.py --audiveris "C:\\path\\to\\Audiveris.exe"   # Audiveris の場所を指定
 
 エンジン:
-    homr       … いちばんおすすめ。鍵盤マーカーの画面の「homr を準備する」から初回だけインストール（約600MB）
+    homr       … いちばんおすすめ。Chopin the Ⅲの画面の「homr を準備する」から初回だけインストール（約600MB）
     Audiveris  … 印刷楽譜のスキャン向け。https://github.com/Audiveris/audiveris/releases から別途インストール
     oemer      … Python 3.10〜3.13 のときに自動インストール
 
@@ -921,7 +923,7 @@ def _idle_watch(srv, limit):
         idle = time.time() - LAST_ACTIVITY[0]
         busy = LOCK.locked() or HOMR_STATE.get("state") == "installing"
         if idle >= limit and not busy:
-            say("鍵盤マーカーの画面が閉じられたため、補助プログラムを終了します。")
+            say("Chopin the Ⅲの画面が閉じられたため、補助プログラムを終了します。")
             try:
                 srv.shutdown()
             except Exception:
@@ -932,7 +934,7 @@ def _idle_watch(srv, limit):
 def main():
     global AUDIVERIS_OVERRIDE
     _console_utf8()
-    ap = argparse.ArgumentParser(description="楽譜→鍵盤マーカー 補助プログラム")
+    ap = argparse.ArgumentParser(description="Chopin the Ⅲ 補助プログラム")
     ap.add_argument("--port", type=int, default=8765)
     ap.add_argument("--audiveris", help="Audiveris の実行ファイルの場所")
     ap.add_argument("--no-setup", action="store_true", help="インストールの確認をしない")
@@ -942,7 +944,7 @@ def main():
                     help="アプリからの接続がこの秒数ないとき自動で終了する（ブラウザから起動した場合。0=終了しない）")
     args = ap.parse_args()
     AUDIVERIS_OVERRIDE = args.audiveris
-    say("楽譜→鍵盤マーカー 補助プログラム " + VERSION)
+    say("Chopin the Ⅲ 補助プログラム " + VERSION)
     if not py_ok_for_oemer():
         say("※ この Python（%d.%d）では oemer は使えません（homr・Audiveris は使えます）。" % sys.version_info[:2])
     if not args.no_setup:
@@ -966,9 +968,9 @@ def main():
     if args.idle_exit > 0:
         LAST_ACTIVITY[0] = time.time()
         threading.Thread(target=_idle_watch, args=(srv, args.idle_exit), daemon=True).start()
-        say(f"鍵盤マーカーの画面を閉じると、{args.idle_exit // 60}分ほどで自動的に終了します。")
-    say(f"楽譜→鍵盤マーカー 補助プログラムを起動しました： http://127.0.0.1:{args.port}")
-    say("このウィンドウを開いている間、鍵盤マーカーから専用エンジンを使えます。終了は Ctrl+C。")
+        say(f"Chopin the Ⅲの画面を閉じると、{args.idle_exit // 60}分ほどで自動的に終了します。")
+    say(f"Chopin the Ⅲ 補助プログラムを起動しました： http://127.0.0.1:{args.port}")
+    say("このウィンドウを開いている間、Chopin the Ⅲから専用エンジンを使えます。終了は Ctrl+C。")
     try:
         srv.serve_forever()
     except KeyboardInterrupt:
@@ -981,18 +983,18 @@ if __name__ == "__main__":
   <script type="text/plain" id="helper-launcher">@echo off
 chcp 65001 >nul
 setlocal
-title 楽譜→鍵盤マーカー 補助プログラム
+title Chopin the Ⅲ 補助プログラム
 set "PKM=%LOCALAPPDATA%\PianoKeyMarker"
 set "PKM_SELF=%~f0"
 if not exist "%PKM%" mkdir "%PKM%"
 set "UV=%PKM%\uv.exe"
-rem 鍵盤マーカーの画面から自動で起動されたときは --protocol が付く（ウィンドウは最小化で開く）
+rem Chopin the Ⅲの画面から自動で起動されたときは --protocol が付く（ウィンドウは最小化で開く）
 set "PKM_PROTO="
 if /i "%~1"=="--protocol" set "PKM_PROTO=1"
 
 echo.
 echo  ==============================================
-echo    楽譜→鍵盤マーカー 補助プログラム
+echo    Chopin the Ⅲ 補助プログラム
 echo  ==============================================
 echo   このウィンドウは、楽譜を読み取る間は開いたままにしてください。
 echo   （最小化しても大丈夫です。閉じると読み取りができなくなります）
@@ -1015,7 +1017,7 @@ if errorlevel 1 goto fail
 if not exist "%PKM%\pkm_omr_helper.py" goto fail
 
 rem このファイル自体を決まった場所（%LOCALAPPDATA%\PianoKeyMarker\helper.bat）に保存し、
-rem 鍵盤マーカーの画面から自動で起動できるように「起動用リンク」を登録する（管理者権限は不要）
+rem Chopin the Ⅲの画面から自動で起動できるように「起動用リンク」を登録する（管理者権限は不要）
 if /i not "%~f0"=="%PKM%\helper.bat" copy /y "%~f0" "%PKM%\helper.bat" >nul
 reg add "HKCU\Software\Classes\pianokeymarker-helper" /ve /d "URL:PianoKeyMarker Helper" /f >nul
 reg add "HKCU\Software\Classes\pianokeymarker-helper" /v "URL Protocol" /d "" /f >nul
@@ -1024,11 +1026,11 @@ reg add "HKCU\Software\Classes\pianokeymarker-helper\shell\open\command" /ve /d 
 set "PATH=%PKM%;%PATH%"
 echo  補助プログラムを起動します（初回は Python の準備に1〜3分かかります）...
 echo.
-rem 鍵盤マーカーの画面（アプリ・ブラウザ）を閉じて3分ほど接続がなければ、自動で終了する
+rem Chopin the Ⅲの画面（アプリ・ブラウザ）を閉じて3分ほど接続がなければ、自動で終了する
 "%UV%" run --no-project --python 3.12 "%PKM%\pkm_omr_helper.py" --no-setup --idle-exit 180
 if errorlevel 1 goto crashed
 echo.
-echo  補助プログラムを終了しました。次回からは、鍵盤マーカーで「解析する」を押すと自動で起動します。
+echo  補助プログラムを終了しました。次回からは、Chopin the Ⅲで「解析する」を押すと自動で起動します。
 if defined PKM_PROTO exit /b
 timeout /t 8 >nul
 exit /b
@@ -1051,8 +1053,8 @@ exit /b
 ### PKM-HELPER-PY BEGIN ###
 #!/usr/bin/env python3
 """
-楽譜→鍵盤マーカー 用の補助プログラム
-楽譜読み取り専用のソフト（oemer / homr / Audiveris）をこのPCで動かし、鍵盤マーカーから使えるようにします。
+Chopin the Ⅲ 用の補助プログラム
+楽譜読み取り専用のソフト（oemer / homr / Audiveris）をこのPCで動かし、Chopin the Ⅲから使えるようにします。
 
 使い方:
     python pkm_omr_helper.py            # http://127.0.0.1:8765 で待ち受け（初回は必要な部品を自動インストール）
@@ -1060,7 +1062,7 @@ exit /b
     python pkm_omr_helper.py --audiveris "C:\\path\\to\\Audiveris.exe"   # Audiveris の場所を指定
 
 エンジン:
-    homr       … いちばんおすすめ。鍵盤マーカーの画面の「homr を準備する」から初回だけインストール（約600MB）
+    homr       … いちばんおすすめ。Chopin the Ⅲの画面の「homr を準備する」から初回だけインストール（約600MB）
     Audiveris  … 印刷楽譜のスキャン向け。https://github.com/Audiveris/audiveris/releases から別途インストール
     oemer      … Python 3.10〜3.13 のときに自動インストール
 
@@ -1496,7 +1498,7 @@ def _idle_watch(srv, limit):
         idle = time.time() - LAST_ACTIVITY[0]
         busy = LOCK.locked() or HOMR_STATE.get("state") == "installing"
         if idle >= limit and not busy:
-            say("鍵盤マーカーの画面が閉じられたため、補助プログラムを終了します。")
+            say("Chopin the Ⅲの画面が閉じられたため、補助プログラムを終了します。")
             try:
                 srv.shutdown()
             except Exception:
@@ -1507,7 +1509,7 @@ def _idle_watch(srv, limit):
 def main():
     global AUDIVERIS_OVERRIDE
     _console_utf8()
-    ap = argparse.ArgumentParser(description="楽譜→鍵盤マーカー 補助プログラム")
+    ap = argparse.ArgumentParser(description="Chopin the Ⅲ 補助プログラム")
     ap.add_argument("--port", type=int, default=8765)
     ap.add_argument("--audiveris", help="Audiveris の実行ファイルの場所")
     ap.add_argument("--no-setup", action="store_true", help="インストールの確認をしない")
@@ -1517,7 +1519,7 @@ def main():
                     help="アプリからの接続がこの秒数ないとき自動で終了する（ブラウザから起動した場合。0=終了しない）")
     args = ap.parse_args()
     AUDIVERIS_OVERRIDE = args.audiveris
-    say("楽譜→鍵盤マーカー 補助プログラム " + VERSION)
+    say("Chopin the Ⅲ 補助プログラム " + VERSION)
     if not py_ok_for_oemer():
         say("※ この Python（%d.%d）では oemer は使えません（homr・Audiveris は使えます）。" % sys.version_info[:2])
     if not args.no_setup:
@@ -1541,9 +1543,9 @@ def main():
     if args.idle_exit > 0:
         LAST_ACTIVITY[0] = time.time()
         threading.Thread(target=_idle_watch, args=(srv, args.idle_exit), daemon=True).start()
-        say(f"鍵盤マーカーの画面を閉じると、{args.idle_exit // 60}分ほどで自動的に終了します。")
-    say(f"楽譜→鍵盤マーカー 補助プログラムを起動しました： http://127.0.0.1:{args.port}")
-    say("このウィンドウを開いている間、鍵盤マーカーから専用エンジンを使えます。終了は Ctrl+C。")
+        say(f"Chopin the Ⅲの画面を閉じると、{args.idle_exit // 60}分ほどで自動的に終了します。")
+    say(f"Chopin the Ⅲ 補助プログラムを起動しました： http://127.0.0.1:{args.port}")
+    say("このウィンドウを開いている間、Chopin the Ⅲから専用エンジンを使えます。終了は Ctrl+C。")
     try:
         srv.serve_forever()
     except KeyboardInterrupt:
@@ -1553,6 +1555,6 @@ def main():
 if __name__ == "__main__":
     main()
 </script>
-  <script src="js/main.js?v=1793166858002"></script>
+  <script src="js/main.js?v=1793176465701"></script>
 </body>
 </html>
