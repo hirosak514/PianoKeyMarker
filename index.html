@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>楽譜→鍵盤マーカー</title>
-  <link rel="stylesheet" href="app.css?v=1793165530308">
+  <link rel="stylesheet" href="app.css?v=1793166858002">
 </head>
 <body>
   <header class="topbar">
@@ -198,6 +198,16 @@
           <option value="ja">ド レ ミ（日本語）</option>
         </select>
       </label>
+      <div id="licenseSection" hidden>
+        <h3>🔑 ライセンス（Pro版）</h3>
+        <p id="licenseStatus" class="muted"></p>
+        <div id="licenseForm" class="license-form">
+          <textarea id="licenseInput" rows="2" spellcheck="false" autocomplete="off" placeholder="購入時にお送りしたライセンスキーを貼り付けてください"></textarea>
+          <button type="button" id="btnLicenseActivate" class="primary">制限を解除する</button>
+        </div>
+        <button type="button" id="btnLicenseRemove" hidden>この端末の解除を取り消す</button>
+        <div id="licenseMsg" class="license-msg"></div>
+      </div>
       <div class="dlg-actions">
         <button value="close" class="primary">閉じる</button>
       </div>
@@ -252,8 +262,14 @@
       </ul>
       <p class="muted">無料版でも、楽譜の読み取り・解析・再生・編集はすべて使えます。編集中の楽譜は自動で保存され、次に開いたときに続きから再開できます。</p>
       <p class="muted">Pro版の購入方法は現在準備中です。</p>
+      <h3>🔑 ライセンスキーをお持ちの方</h3>
+      <div class="license-form">
+        <textarea id="proLicenseInput" rows="2" spellcheck="false" autocomplete="off" placeholder="ライセンスキーを貼り付けてください"></textarea>
+        <button type="button" id="btnProActivate" class="primary">制限を解除する</button>
+      </div>
+      <div id="proLicenseMsg" class="license-msg"></div>
       <div class="dlg-actions">
-        <button value="close" class="primary">閉じる</button>
+        <button value="close">閉じる</button>
       </div>
     </form>
   </dialog>
@@ -1537,6 +1553,6 @@ def main():
 if __name__ == "__main__":
     main()
 </script>
-  <script src="js/main.js?v=1793165530308"></script>
+  <script src="js/main.js?v=1793166858002"></script>
 </body>
 </html>

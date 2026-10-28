@@ -484,3 +484,11 @@ body.resizing, body.resizing * { cursor: row-resize !important; user-select: non
   box-shadow: 0 8px 24px rgba(0, 0, 0, .28); font-size: 12px; line-height: 1.6;
 }
 .tip-bubble b { display: block; font-size: 13px; color: var(--accent); margin-bottom: 2px; }
+
+/* ライセンスキーの入力（Chrome拡張機能版） */
+.license-form { display: flex; gap: 8px; align-items: stretch; flex-wrap: wrap; margin: 6px 0; }
+.license-form textarea { flex: 1 1 260px; min-width: 0; font-family: ui-monospace, Consolas, monospace; font-size: 12px; word-break: break-all; resize: vertical; padding: 6px 8px; }
+.license-form button { flex: 0 0 auto; }
+.license-msg { font-size: 13px; min-height: 1.2em; }
+.license-msg.err { color: #c62828; }
+.license-msg.ok { color: #2e7d32; }
