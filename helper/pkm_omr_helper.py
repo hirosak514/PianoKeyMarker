@@ -25,11 +25,12 @@ import subprocess
 import sys
 import tempfile
 import threading
+import urllib.request
 import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
-VERSION = "2.5"
+VERSION = "2.6"
 LOCK = threading.Lock()          # 読み取りは1枚ずつ（どのエンジンもメモリを多く使うため）
 LAST_ACTIVITY = [0.0]           # 最後にアプリから接続があった時刻（--idle-exit 用）
 MAX_BYTES = 30 * 1024 * 1024
@@ -75,13 +76,101 @@ def oemer_ok():
         return False
 
 
+# oemer はアプリから「インストールしますか？」→ はい で入れられる。uv で専用の Python 3.12 環境
+# (%USERPROFILE%\.pkm_omr\oemer-env) を作って部品を入れ、読み取りモデルも先にダウンロードしておく。
+OEMER_ENV = os.path.join(DATA_DIR, "oemer-env")
+OEMER_MARKER = os.path.join(DATA_DIR, "oemer_ready.json")
+OEMER_STATE = {"state": "idle", "percent": 0, "phase": "", "error": "", "hint": ""}
+OEMER_RUN = "import sys; from oemer.ete import main; sys.argv[0] = 'oemer'; main()"
+OEMER_CHECKPOINTS = [
+    ("unet_big", "model.onnx", "1st_model.onnx"), ("unet_big", "weights.h5", "1st_weights.h5"),
+    ("seg_net", "model.onnx", "2nd_model.onnx"), ("seg_net", "weights.h5", "2nd_weights.h5"),
+]
+OEMER_CHECKPOINT_URL = "https://github.com/BreezeWhite/oemer/releases/download/checkpoints/"
+
+
+def _oemer_py():
+    return os.path.join(OEMER_ENV, "Scripts", "python.exe") if os.name == "nt" else os.path.join(OEMER_ENV, "bin", "python")
+
+
+def _oem_set(**kw):
+    OEMER_STATE.update(kw)
+
+
+def install_oemer():
+    """oemer の部品と読み取りモデルを入れる（初回のみ・数分）"""
+    if OEMER_STATE["state"] == "installing":
+        return
+    uv = uv_cmd()
+    if not uv:
+        _oem_set(state="error", error="uv が見つかりません", hint="補助プログラムを起動し直してください。")
+        return
+    _oem_set(state="installing", percent=2, phase="準備を始めています…", error="", hint="")
+    say("oemer のインストールを始めます（初回のみ）")
+    try:
+        os.makedirs(DATA_DIR, exist_ok=True)
+        py = _oemer_py()
+
+        def run(args, timeout=1800):
+            r = subprocess.run(args, capture_output=True, text=True, timeout=timeout)
+            if r.returncode != 0:
+                raise RuntimeError(((r.stderr or "") + (r.stdout or ""))[-800:] or "失敗しました")
+
+        if not os.path.exists(py):
+            _oem_set(percent=5, phase="Python を準備中…")
+            run(uv + ["venv", "--python", "3.12", OEMER_ENV])
+        _oem_set(percent=12, phase="oemer の部品をダウンロード中…")
+        run(uv + ["pip", "install", "--python", py, "--no-deps", "oemer"])
+        _oem_set(percent=20, phase="oemer の部品をダウンロード中（画像処理の部品など）…")
+        run(uv + ["pip", "install", "--python", py] + OEMER_DEPS)
+        _oem_set(percent=40, phase="読み取りモデルの置き場所を確認中…")
+        r = subprocess.run([py, "-c", "import os, oemer; print(os.path.dirname(oemer.__file__))"], capture_output=True, text=True, timeout=300)
+        mod = (r.stdout or "").strip().splitlines()[-1] if r.returncode == 0 and r.stdout.strip() else ""
+        if not mod or not os.path.isdir(mod):
+            raise RuntimeError("oemer を読み込めませんでした: " + (r.stderr or "")[-400:])
+        # 読み取りモデル（4ファイル）。足りないものだけダウンロードする
+        todo = [(d, n, u) for d, n, u in OEMER_CHECKPOINTS if not os.path.exists(os.path.join(mod, "checkpoints", d, n))]
+        for i, (d, n, u) in enumerate(todo):
+            folder = os.path.join(mod, "checkpoints", d)
+            os.makedirs(folder, exist_ok=True)
+            dest = os.path.join(folder, n)
+            tmp = dest + ".part"
+            with urllib.request.urlopen(OEMER_CHECKPOINT_URL + u, timeout=60) as resp, open(tmp, "wb") as f:
+                total = int(resp.headers.get("Content-Length") or 0)
+                got = 0
+                while True:
+                    chunk = resp.read(1 << 16)
+                    if not chunk:
+                        break
+                    f.write(chunk)
+                    got += len(chunk)
+                    frac = (i + (got / total if total else 0)) / len(todo)
+                    _oem_set(percent=round(40 + frac * 55), phase="読み取りモデルをダウンロード中（%d / %d：%d MB）" % (i + 1, len(todo), got // 1048576))
+            if total and os.path.getsize(tmp) != total:
+                raise RuntimeError("読み取りモデルのダウンロードが途中で切れました (connection)")
+            os.replace(tmp, dest)
+        _oem_set(percent=97, phase="動作を確認中…")
+        run([py, "-c", "import oemer.ete"], timeout=600)
+        with open(OEMER_MARKER, "w", encoding="utf-8") as f:
+            json.dump({"ok": True, "time": time.time()}, f)
+        _oem_set(state="ready", percent=100, phase="完了")
+        say("oemer のインストールが終わりました")
+    except Exception as e:  # noqa: BLE001
+        err = str(e)
+        say("※ oemer のインストールに失敗しました: " + err[-300:])
+        _oem_set(state="error", error=err[-500:], hint=_explain_error(err))
+
+
 def find_oemer():
+    py = _oemer_py()
+    if os.path.exists(OEMER_MARKER) and os.path.exists(py):
+        return [py, "-c", OEMER_RUN]
     if not oemer_ok():
         return None
     exe = shutil.which("oemer")
     if exe:
         return [exe]
-    return [sys.executable, "-c", "import sys; from oemer.ete import main; sys.argv[0] = 'oemer'; main()"]
+    return [sys.executable, "-c", OEMER_RUN]
 
 
 # ---------------- homr（uv 経由） ----------------
@@ -429,7 +518,9 @@ def engines_status():
                       "label": "Audiveris（スキャン・印刷楽譜向け）",
                       "installable": os.name == "nt",
                       "install": dict(AUD_STATE)},
-        "oemer": {"available": find_oemer() is not None, "note": "" if find_oemer() else ("Python 3.10〜3.13 が必要です" if not py_ok_for_oemer() else "インストールされていません"), "label": "oemer"},
+        "oemer": {"available": find_oemer() is not None,
+                  "note": "" if find_oemer() else ("インストール中 %d%%" % OEMER_STATE["percent"] if OEMER_STATE["state"] == "installing" else "oemer がインストールされていません"),
+                  "label": "oemer", "installable": bool(uv_cmd()), "install": dict(OEMER_STATE)},
     }
 
 
@@ -463,7 +554,7 @@ def run_engine(engine, src, work):
     if engine == "oemer":
         cmd = find_oemer()
         if not cmd:
-            raise RuntimeError("oemer が使えません（Python 3.10〜3.13 で補助プログラムを起動してください）")
+            raise RuntimeError("oemer がインストールされていません。アプリの「oemer をインストール」から入れてください")
         proc = subprocess.run(cmd + [src, "-o", out], capture_output=True, text=True, timeout=TIMEOUT_SEC)
     elif engine == "homr":
         uv = uv_cmd()
@@ -541,6 +632,10 @@ class Handler(BaseHTTPRequestHandler):
             if AUD_STATE["state"] != "installing" and not find_audiveris():
                 threading.Thread(target=install_audiveris, daemon=True).start()
             return self.reply(200, {"ok": True})
+        if u.path.rstrip("/") == "/oemer/install":
+            if OEMER_STATE["state"] != "installing" and not find_oemer():
+                threading.Thread(target=install_oemer, daemon=True).start()
+            return self.reply(200, {"ok": True})
         if u.path.rstrip("/") == "/homr/install":
             if HOMR_STATE["state"] != "installing":
                 threading.Thread(target=install_homr, daemon=True).start()
@@ -611,7 +706,7 @@ def _idle_watch(srv, limit):
     while True:
         time.sleep(5)
         idle = time.time() - LAST_ACTIVITY[0]
-        busy = LOCK.locked() or HOMR_STATE.get("state") == "installing" or AUD_STATE.get("state") == "installing"
+        busy = LOCK.locked() or HOMR_STATE.get("state") == "installing" or AUD_STATE.get("state") == "installing" or OEMER_STATE.get("state") == "installing"
         if idle >= limit and not busy:
             say("Chopin the Ⅲの画面が閉じられたため、補助プログラムを終了します。")
             try:
