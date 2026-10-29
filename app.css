@@ -549,3 +549,7 @@ body.resizing, body.resizing * { cursor: row-resize !important; user-select: non
 .engine-quick { font-size: 12px; padding: 4px 6px; border-radius: 6px; border: 1px solid #9ccfb2; background: #eaf7ef; color: #1e6b43; font-weight: 600; max-width: 220px; }
 .engine-chip.ok { color: #1e6b43; }
 .lang-quick { font-size: 12px; padding: 4px 4px; border-radius: 6px; border: 1px solid #c9cfd8; background: #fff; color: #1f2937; max-width: 120px; }
+.export-dir { word-break: break-all; font-weight: 600; }
+/* 右から左へ書く言語（ペルシャ語）: 文章の部分だけ右寄せ・右から左にする（鍵盤・タイムライン・楽譜は左から右のまま） */
+body.rtl dialog, body.rtl .ai-status, body.rtl .toast, body.rtl .tour-card, body.rtl .detail, body.rtl .drop-hint, body.rtl .tip-bubble { direction: rtl; text-align: right; }
+body.rtl dialog code, body.rtl dialog pre, body.rtl dialog input, body.rtl .su-cmd { direction: ltr; text-align: left; }

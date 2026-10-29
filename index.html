@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chopin the Ⅲ</title>
-  <link rel="stylesheet" href="app.css?v=1793251813534">
+  <link rel="stylesheet" href="app.css?v=1793255525967">
 </head>
 <body>
   <header class="topbar">
@@ -186,6 +186,12 @@
           <option value="ja">ド レ ミ（日本語）</option>
         </select>
       </label>
+      <div id="exportDirSection" hidden>
+        <h3>📁 書き出し先のフォルダ</h3>
+        <p class="muted opt-note">「書き出し」「MIDI出力」「MusicXML出力」で作るファイルを保存するフォルダです。</p>
+        <div class="row"><span>保存先</span><b id="exportDirName" class="export-dir"></b></div>
+        <div class="row"><button type="button" id="btnExportDir" class="small primary">フォルダを選ぶ</button> <button type="button" id="btnExportDirReset" class="small">既定に戻す</button></div>
+      </div>
       <div id="licenseSection" hidden>
         <h3>🔑 ライセンス（Pro版）</h3>
         <p id="licenseStatus" class="muted"></p>
@@ -248,9 +254,9 @@
         <li>MusicXML出力（MuseScore などの楽譜ソフトで、楽譜として開ける .musicxml ファイル）</li>
         <li>ライブラリへの保存（複数の楽譜を保存して、あとから開く）</li>
         <li>ファイルへの書き出し・ファイルからの読み込み（MusicXML・MIDI・JSON）</li>
-        <li>すべての小節の解析（無料版は曲の最初の8小節まで）</li>
+        <li>すべての小節の解析（無料版は曲の最初の12小節まで）</li>
       </ul>
-      <p class="muted">無料版でも、楽譜の読み取り（曲の最初の8小節まで）・再生・編集が使えます。編集中の楽譜は自動で保存され、次に開いたときに続きから再開できます。</p>
+      <p class="muted">無料版でも、楽譜の読み取り（曲の最初の12小節まで）・再生・編集が使えます。編集中の楽譜は自動で保存され、次に開いたときに続きから再開できます。</p>
       <p class="muted">Pro版の購入方法は現在準備中です。</p>
       <h3>🔑 ライセンスキーをお持ちの方</h3>
       <div class="license-form">
@@ -2082,6 +2088,6 @@ def main():
 if __name__ == "__main__":
     main()
 </script>
-  <script src="js/main.js?v=1793251813534"></script>
+  <script src="js/main.js?v=1793255525967"></script>
 </body>
 </html>
