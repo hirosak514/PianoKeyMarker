@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chopin the Ⅲ</title>
-  <link rel="stylesheet" href="app.css?v=1793274012500">
+  <link rel="stylesheet" href="app.css?v=1793276063583">
 </head>
 <body>
   <header class="topbar">
@@ -25,7 +25,7 @@
       <button id="btnExport" title="JSONファイルとして書き出し（このアプリで読み込み直せる形式）">書き出し</button>
       <button id="btnExportMidi" title="MIDIファイル（.mid）として書き出し（他の楽譜・演奏ソフトで開けます）">MIDI出力</button>
       <button id="btnExportXml" title="MusicXMLファイル（.musicxml）として書き出し（MuseScore・Finale・Sibelius などの楽譜ソフトで開いて、楽譜として表示・編集できます）">MusicXML出力</button>
-      <label class="btn" title="楽譜ファイルを読み込み（MusicXML・MXL・MIDI・このアプリで書き出したJSON）">読み込み<input type="file" id="importFile" accept=".json,.musicxml,.xml,.mxl,.mid,.midi" hidden></label>
+      <label class="btn" title="楽譜ファイルを読み込み（MusicXML・MXL・MIDI・PDF・このアプリで書き出したJSON）">読み込み<input type="file" id="importFile" accept=".json,.musicxml,.xml,.mxl,.mid,.midi,.pdf,application/pdf" hidden></label>
     </div>
     <button id="btnTour" title="操作をガイドツアーで順番に説明します">🧭 ガイドツアー</button>
     <button id="btnHelp" title="使い方・準備">？ 使い方</button>
@@ -37,7 +37,7 @@
     <section class="pane image-pane">
       <div class="pane-head">
         <div id="pageTabs" class="page-tabs" title="ドラッグでページの順番を入れ替え"></div>
-        <label id="lblAddImage" class="btn small" title="画像ファイルを選択（複数可・iPhoneのHEICも可）">＋ 画像<input type="file" id="imgFile" accept="image/*,.heic,.heif" multiple hidden></label>
+        <label id="lblAddImage" class="btn small" title="画像ファイルを選択（複数可・iPhoneのHEICも可）。Pro版では PDF・MusicXML・MIDI も読み込めます">＋ 画像<input type="file" id="imgFile" accept="image/*,.heic,.heif,.pdf,application/pdf,.musicxml,.xml,.mxl,.mid,.midi" multiple hidden></label>
         <button id="btnPhone" class="small" title="スマホで撮った写真をQRコード経由で受け取る">📱 スマホから</button>
         <button id="btnPaste" class="small" title="クリップボードの画像を貼り付け（Ctrl+V でも可）">📋 貼り付け</button>
         <button id="btnPhoto" class="small" title="傾き・台形のゆがみ・影を補正（スマホ写真向け）" disabled>✎ 写真補正</button>
@@ -55,6 +55,7 @@
           <p><b>楽譜の画像をここにドロップ</b>（複数枚まとめてOK）</p>
           <p>「＋ 画像」でファイル選択 ／ 「📋 貼り付け」または Ctrl+V</p>
           <p class="muted">Webページ上の画像は、画像をこの画面へドラッグするか、コピーして貼り付け</p>
+          <p class="muted">PDF・MusicXML・MIDI ファイルもドロップで読み込めます（Pro版）</p>
           <div class="phone-guide">
             <b>📱 スマホで撮った楽譜を使うには</b>
             <ul>
@@ -255,9 +256,10 @@
         <li>MusicXML出力（MuseScore などの楽譜ソフトで、楽譜として開ける .musicxml ファイル）</li>
         <li>ライブラリへの保存（複数の楽譜を保存して、あとから開く）</li>
         <li>ファイルへの書き出し・ファイルからの読み込み（MusicXML・MIDI・JSON）</li>
-        <li>すべての小節の解析（無料版は曲の最初の12小節まで）</li>
+        <li>PDF の楽譜の読み込み（ページごとに画像にして解析）</li>
+        <li>すべての小節の解析（無料版は曲の最初の12小節まで。サンプル楽譜はすべての小節）</li>
       </ul>
-      <p class="muted">無料版でも、楽譜の読み取り（曲の最初の12小節まで）・再生・編集が使えます。編集中の楽譜は自動で保存され、次に開いたときに続きから再開できます。</p>
+      <p class="muted">無料版でも、楽譜の読み取り（曲の最初の12小節まで。サンプル楽譜はすべて）・再生・編集が使えます。編集中の楽譜は自動で保存され、次に開いたときに続きから再開できます。</p>
       <p class="muted">Pro版の購入方法は現在準備中です。</p>
       <h3>🔑 ライセンスキーをお持ちの方</h3>
       <div class="license-form">
@@ -2089,6 +2091,6 @@ def main():
 if __name__ == "__main__":
     main()
 </script>
-  <script src="js/main.js?v=1793274012500"></script>
+  <script src="js/main.js?v=1793276063583"></script>
 </body>
 </html>
