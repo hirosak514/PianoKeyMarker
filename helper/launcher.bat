@@ -12,18 +12,20 @@ if /i "%~1"=="--protocol" set "PKM_PROTO=1"
 
 echo.
 echo  ==============================================
-echo    Chopin the Ⅲ 補助プログラム
+echo    Chopin the III Helper / Chopin the Ⅲ 補助プログラム
 echo  ==============================================
+echo   Keep this window open while reading sheet music (minimizing is fine).
 echo   このウィンドウは、楽譜を読み取る間は開いたままにしてください。
 echo   （最小化しても大丈夫です。閉じると読み取りができなくなります）
 echo.
 
 if exist "%UV%" goto haveuv
+echo  [Setup] Downloading required tools (first time only, about a minute)...
 echo  [準備] 必要な道具をダウンロードしています（初回だけ・1分ほど）...
 powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; $env:UV_INSTALL_DIR=(Join-Path $env:LOCALAPPDATA 'PianoKeyMarker'); $env:UV_NO_MODIFY_PATH='1'; irm https://astral.sh/uv/install.ps1 | iex"
 if exist "%PKM%\bin\uv.exe" copy /y "%PKM%\bin\uv.exe" "%UV%" >nul
 if exist "%UV%" goto haveuv
-echo  [準備] 別の方法でダウンロードしています...
+echo  [Setup] Trying another download method... / 別の方法でダウンロードしています...
 powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; $z=Join-Path $env:TEMP 'pkm-uv.zip'; $d=Join-Path $env:TEMP 'pkm-uv'; Invoke-WebRequest -UseBasicParsing 'https://github.com/astral-sh/uv/releases/latest/download/uv-x86_64-pc-windows-msvc.zip' -OutFile $z; Expand-Archive -Force $z $d; Copy-Item (Get-ChildItem $d -Recurse -Filter uv.exe | Select-Object -First 1).FullName (Join-Path $env:LOCALAPPDATA 'PianoKeyMarker\uv.exe') -Force"
 if exist "%UV%" goto haveuv
 goto fail
@@ -42,6 +44,7 @@ reg add "HKCU\Software\Classes\pianokeymarker-helper" /v "URL Protocol" /d "" /f
 reg add "HKCU\Software\Classes\pianokeymarker-helper\shell\open\command" /ve /d "\"%ComSpec%\" /c start \"PianoKeyMarker\" /min \"%PKM%\helper.bat\" --protocol" /f >nul
 
 set "PATH=%PKM%;%PATH%"
+echo  Starting the helper (the first time, preparing Python takes 1-3 minutes)...
 echo  補助プログラムを起動します（初回は Python の準備に1〜3分かかります）...
 echo.
 rem 古い補助プログラムが動いていれば終了させる（新しいものに入れ替えるため。自分自身の PowerShell は除く）
@@ -51,6 +54,7 @@ rem Chopin the Ⅲの画面（アプリ・ブラウザ）を閉じて3分ほど�
 "%UV%" run --no-project --python 3.12 "%PKM%\pkm_omr_helper.py" --no-setup --idle-exit 180
 if errorlevel 1 goto crashed
 echo.
+echo  The helper has stopped. Next time it starts automatically when you press "Analyze" in Chopin the III.
 echo  補助プログラムを終了しました。次回からは、Chopin the Ⅲで「解析する」を押すと自動で起動します。
 if defined PKM_PROTO exit /b
 timeout /t 8 >nul
@@ -58,11 +62,15 @@ exit /b
 
 :crashed
 echo.
+echo  The helper stopped. Please check the messages above.
 echo  補助プログラムが止まりました。上に表示された内容を確認してください。
 pause
 exit /b
 
 :fail
+echo.
+echo  Setup didn't succeed. Check your internet connection and open this file again.
+echo  If it keeps failing, please use the Windows app (exe), which needs no setup.
 echo.
 echo  準備がうまくいきませんでした。
 echo  インターネットにつながっているか確認して、もう一度このファイルを開いてください。
@@ -104,7 +112,7 @@ import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
-VERSION = "2.6"
+VERSION = "2.7"
 LOCK = threading.Lock()          # 読み取りは1枚ずつ（どのエンジンもメモリを多く使うため）
 LAST_ACTIVITY = [0.0]           # 最後にアプリから接続があった時刻（--idle-exit 用）
 MAX_BYTES = 30 * 1024 * 1024
@@ -782,7 +790,7 @@ def _idle_watch(srv, limit):
         idle = time.time() - LAST_ACTIVITY[0]
         busy = LOCK.locked() or HOMR_STATE.get("state") == "installing" or AUD_STATE.get("state") == "installing" or OEMER_STATE.get("state") == "installing"
         if idle >= limit and not busy:
-            say("Chopin the Ⅲの画面が閉じられたため、補助プログラムを終了します。")
+            say("Chopin the III was closed, so the helper is exiting. / Chopin the Ⅲの画面が閉じられたため、補助プログラムを終了します。")
             try:
                 srv.shutdown()
             except Exception:
@@ -803,7 +811,7 @@ def main():
                     help="アプリからの接続がこの秒数ないとき自動で終了する（ブラウザから起動した場合。0=終了しない）")
     args = ap.parse_args()
     AUDIVERIS_OVERRIDE = args.audiveris
-    say("Chopin the Ⅲ 補助プログラム " + VERSION)
+    say("Chopin the III Helper / Chopin the Ⅲ 補助プログラム " + VERSION)
     if not py_ok_for_oemer():
         say("※ この Python（%d.%d）では oemer は使えません（homr・Audiveris は使えます）。" % sys.version_info[:2])
     if not args.no_setup:
@@ -822,13 +830,14 @@ def main():
         srv = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
     except OSError:
         # すでに補助プログラムが動いている（同じ番号を使っている）: そちらを使うので、ここは静かに終わる
-        say("補助プログラムはすでに起動しています。このウィンドウは閉じてかまいません。")
+        say("The helper is already running. You can close this window. / 補助プログラムはすでに起動しています。このウィンドウは閉じてかまいません。")
         return
     if args.idle_exit > 0:
         LAST_ACTIVITY[0] = time.time()
         threading.Thread(target=_idle_watch, args=(srv, args.idle_exit), daemon=True).start()
-        say(f"Chopin the Ⅲの画面を閉じると、{args.idle_exit // 60}分ほどで自動的に終了します。")
-    say(f"Chopin the Ⅲ 補助プログラムを起動しました： http://127.0.0.1:{args.port}")
+        say(f"It exits automatically about {args.idle_exit // 60} minutes after Chopin the III is closed. / Chopin the Ⅲの画面を閉じると、{args.idle_exit // 60}分ほどで自動的に終了します。")
+    say(f"Helper started / Chopin the Ⅲ 補助プログラムを起動しました： http://127.0.0.1:{args.port}")
+    say("While this window is open, Chopin the III can use the recognition engines. Press Ctrl+C to quit.")
     say("このウィンドウを開いている間、Chopin the Ⅲから専用エンジンを使えます。終了は Ctrl+C。")
     try:
         srv.serve_forever()

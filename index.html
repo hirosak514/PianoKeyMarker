@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chopin the Ⅲ</title>
-  <link rel="stylesheet" href="app.css?v=1793244602839">
+  <link rel="stylesheet" href="app.css?v=1793251813534">
 </head>
 <body>
   <header class="topbar">
@@ -30,6 +30,7 @@
     <button id="btnTour" title="操作をガイドツアーで順番に説明します">🧭 ガイドツアー</button>
     <button id="btnHelp" title="使い方・準備">？ 使い方</button>
     <button id="btnSettings" title="設定">⚙ 設定</button>
+    <select id="langQuick" class="lang-quick" aria-label="Language / 言語" title="Language / 言語"></select>
   </header>
 
   <main class="workspace">
@@ -68,8 +69,6 @@
         <div id="imgWrap" class="img-wrap" hidden><img id="imgEl" alt="楽譜画像"><div id="imgOverlay" class="img-overlay"></div></div>
       </div>
       <div class="analyze-bar">
-        <select id="aiProvider" aria-label="AIの種類"></select>
-        <span id="aiModel" class="model-chip"></span>
         <select id="engineQuick" class="engine-quick" aria-label="読み取りに使う方法" title="楽譜の読み取りに使う方法を選びます"></select>
         <span id="engineChip" class="model-chip engine-chip" hidden></span>
         <button id="btnAnalyze" title="表示中のページだけを解析（そのページの小節を置き換え）">このページを解析</button>
@@ -83,17 +82,9 @@
       <div class="meta">
         <label>テンポ ♩=<input id="bpm" type="number" min="20" max="300" step="1"></label>
         <label>拍子 <input id="timeSig" size="4" placeholder="4/4"></label>
-        <label title="AIが調号を読み間違えたときはここで直すと、すべての音が計算し直されます">調号 <select id="keyFifths"></select></label>
+        <label title="調号が読み間違えられたときはここで直すと、すべての音が計算し直されます">調号 <select id="keyFifths"></select></label>
         <span id="stats" class="muted"></span>
         <span id="suspectNav"></span>
-        <button id="btnReread" class="small" title="選んだ小節（複数可）だけをAIで読み直します。前後1小節も手がかりとして一緒に送ります。↶ で元に戻せます">🤖 小節をAIで読み直す</button>
-      </div>
-      <div id="rereadBar" class="reread-bar" hidden>
-        <span id="rereadInfo"></span>
-        <span class="reread-btns">
-          <button id="btnRereadCancel" class="small">キャンセル</button>
-          <button id="btnRereadGo" class="small primary" disabled>🤖 AIで読み直す</button>
-        </span>
       </div>
       <div id="measures" class="measures" tabindex="-1"></div>
       <div id="detail" class="detail"></div>
@@ -165,36 +156,22 @@
   <dialog id="dlgSettings" class="dlg">
     <form method="dialog">
       <h2>設定</h2>
-      <p class="muted">APIキーはこのパソコンのブラウザ内にだけ保存され、選んだAIの公式APIへの送信にのみ使われます。</p>
-      <div id="providerSettings"></div>
+      <h3>🌐 言語 / Language</h3>
+      <label class="row">表示する言語 <select id="optLang"></select></label>
       <h3>📱 スマホ連携（WebRTC・サーバー保存なし）</h3>
       <div id="relaySettings"></div>
       <h3>読み取り</h3>
       <label class="row chk"><input type="checkbox" id="optAutoFix"> 写真を自動補正する（傾き・ページの湾曲・影）</label>
       <label class="row chk"><input type="checkbox" id="optReadTempo"> 楽譜のテンポ表記（♩=90 など）を読み取って、再生のテンポにする</label>
-      <label class="row chk"><input type="checkbox" id="splitSystems"> 段ごとに切り分けて拡大してから読み取る（推奨）</label>
-      <label class="row chk sub"><input type="checkbox" id="optOverlay"> 小節番号と五線の目盛りを描き込んでから送る（推奨）</label>
-      <p class="muted opt-note">段や小節線を見つけられない画像は、ページ全体で読み取ります。</p>
-      <h4>さらに精度を上げる（AIの利用料が増えます）</h4>
-      <label class="row chk"><input type="checkbox" id="optVote"> 2回読み取って照合する（約2倍）</label>
-      <label class="row sub">2回目に使うAI <select id="optVoteWith"></select></label>
-      <label class="row chk"><input type="checkbox" id="optReview"> 読み取り結果を五線譜に描き直し、元の画像と見比べて直させる（約2倍）</label>
-      <h4>楽譜読み取り専用ソフト（無料・精度は homr が断然おすすめ）</h4>
+      <h4>楽譜読み取りソフト（無料・homr がおすすめ）</h4>
       <div class="row"><button type="button" id="btnOpenSetup" class="small">homr の準備画面を開く</button><span class="hint muted">インストールの状態確認・インストールはここから</span></div>
       <label class="row">エンジン <select id="optEngineName">
-        <option value="homr">homr（いちばんおすすめ・写真にも強い）</option>
-        <option value="audiveris">Audiveris（スキャン・印刷楽譜向け）</option>
-        <option value="oemer">oemer</option>
-        <option value="browser">ブラウザ内で実行（インストール不要・サーバー不要・簡易版・時間がかかります）</option>
-      </select></label>
-      <label class="row">使い方 <select id="optEngine">
-        <option value="auto">自動（補助プログラムが動いていれば専用ソフト、なければAI）</option>
-        <option value="off">使わない（AIだけで読む）</option>
-        <option value="compare">AIの結果と照合する</option>
-        <option value="only">専用ソフトだけで読む（AI・APIキー不要）</option>
+        <option value="homr">homr（おすすめ、速い）</option>
+        <option value="audiveris">Audiveris（印刷・PDF向け）</option>
+        <option value="browser">ブラウザ内解析（準備不要、遅い）</option>
       </select></label>
       <div class="row" id="engineUrlRow"><span>補助プログラム</span><input id="optEngineUrl" size="26"> <button type="button" id="btnEngineTest" class="small">接続テスト</button></div>
-      <p class="muted opt-note" id="browserEngineNote" hidden>「ブラウザ内で実行」は、インストールや補助プログラムが不要な代わりに、初回に約160MBのモデルをダウンロードし、1ページの解析に数分かかります（拍子記号などは簡易推定です）。</p>
+      <p class="muted opt-note" id="browserEngineNote" hidden>「ブラウザ内解析」は、インストールや補助プログラムが不要な代わりに、初回に約160MBのモデルをダウンロードし、1ページの解析に数分かかります（拍子記号などは簡易推定です）。</p>
       <div class="row hint" id="engineStatus"></div>
       <h3>表示</h3>
       <label class="row">鍵盤の位置
@@ -271,8 +248,9 @@
         <li>MusicXML出力（MuseScore などの楽譜ソフトで、楽譜として開ける .musicxml ファイル）</li>
         <li>ライブラリへの保存（複数の楽譜を保存して、あとから開く）</li>
         <li>ファイルへの書き出し・ファイルからの読み込み（MusicXML・MIDI・JSON）</li>
+        <li>すべての小節の解析（無料版は曲の最初の8小節まで）</li>
       </ul>
-      <p class="muted">無料版でも、楽譜の読み取り・解析・再生・編集はすべて使えます。編集中の楽譜は自動で保存され、次に開いたときに続きから再開できます。</p>
+      <p class="muted">無料版でも、楽譜の読み取り（曲の最初の8小節まで）・再生・編集が使えます。編集中の楽譜は自動で保存され、次に開いたときに続きから再開できます。</p>
       <p class="muted">Pro版の購入方法は現在準備中です。</p>
       <h3>🔑 ライセンスキーをお持ちの方</h3>
       <div class="license-form">
@@ -306,7 +284,7 @@
       <p class="desktop-only">作った楽譜や設定はこのPCの中（このアプリ専用の保存場所）に保存されます。</p>
 
       <h3>① 楽譜を読み取る方法を1つ用意する</h3>
-      <p class="su-reco-inline">🎯 <b>楽譜の読み取り精度は homr が断然おすすめです。</b>テストでは、スマホで撮った楽譜写真でも104音すべてを正しく読み取りました（AIは調号や音の高さを読み違えやすい）。無料・APIキー不要です。</p>
+      <p class="su-reco-inline">🎯 <b>楽譜の読み取りは homr がおすすめです。</b>テストでは、スマホで撮った楽譜写真でも104音すべてを正しく読み取りました。無料です。</p>
       <p><b>A. 楽譜読み取り専用ソフト homr（いちばんおすすめ・無料・高精度）</b> <button type="button" id="btnHelpSetup" class="small primary">homr の準備画面を開く</button><br>
       <span class="web-only">PCで小さな補助プログラムを動かしておくと、自動でそちらを使って読み取ります。</span>
       <span class="desktop-only">補助プログラムはこのアプリが自動で起動します（<b>Python などのインストールは不要</b>）。homr 本体は、初回だけ「homr の準備画面」の <b>「homr をインストールする」</b>ボタンでインストールします（約750MB・数分〜十数分）。</span></p>
@@ -321,9 +299,8 @@
         <li><b>Mac</b>：<button type="button" id="dlHelperPy" class="small">⬇ pkm_omr_helper.py</button> を保存し、「ターミナル」に次の1行を貼り付けて Return：<br><code class="su-cmd-inline">curl -LsSf https://astral.sh/uv/install.sh | sh &amp;&amp; export PATH="$HOME/.local/bin:$PATH" &amp;&amp; uv run --no-project --python 3.12 ~/Downloads/pkm_omr_helper.py --no-setup</code></li>
         <li>黒いウィンドウ（ターミナル）に「補助プログラムを起動しました」と出たら準備完了。<b>そのウィンドウは開いたまま</b>にします。続けて、準備画面の「homr をインストールする」を押します（約750MB・初回だけ）。</li>
       </ol>
-      <p class="muted">補助プログラムはこのPCの中からの接続だけを受け付け、画像を外部に送りません。Audiveris（スキャン楽譜向け）は <a href="https://github.com/Audiveris/audiveris/releases" target="_blank" rel="noopener">GitHub の公式配布</a> から入れると自動で使えます（audiveris.com / .net は無関係の危険なサイトです）。</p>
-      <p><b>B. AI（homr を使わない場合・精度は homr より下がります）</b><br>「⚙ 設定」で Claude・ChatGPT・Gemini・Grok のどれかの APIキーを入力します（利用料はAI各社に直接かかります）。</p>
-      <p class="muted">「⚙ 設定 → 使い方」が「自動」なら、補助プログラムが動いていれば homr、なければAIで読み取ります。</p>
+      <p class="muted">補助プログラムはこのPCの中からの接続だけを受け付け、画像を外部に送りません。Audiveris（印刷・PDFの楽譜向け）は、解析エンジンで選んで「解析する」を押すと、その場でインストールできます（Windows）。</p>
+      <p><b>B. ブラウザ内解析（準備不要）</b><br>解析エンジンで「ブラウザ内解析」を選ぶと、何もインストールせずに読み取れます（1ページに1〜2分ほどかかります）。</p>
 
       <h3>② 楽譜を入れて解析</h3>
       <ul>
@@ -366,8 +343,8 @@
       <div class="su-reco">
         <b>🎯 楽譜の読み取りは homr が断然おすすめです</b>
         <ul>
-          <li><b>精度がいちばん高い</b>：テストでは、スマホで撮った楽譜写真でも <b>104音すべて</b>を正しく読み取りました。AIは調号（♯・♭）の読み落としや、音の高さの読み違いが起きやすく、直す手間が増えます。</li>
-          <li><b>無料・APIキー不要</b>：何枚読み取っても料金はかかりません。</li>
+          <li><b>精度が高く速い</b>：テストでは、スマホで撮った楽譜写真でも <b>104音すべて</b>を正しく読み取りました。</li>
+          <li><b>無料</b>：何枚読み取っても料金はかかりません。</li>
           <li><b>楽譜はPCの外に出ません</b>：読み取りはすべてこのPCの中で行います。</li>
         </ul>
       </div>
@@ -439,9 +416,7 @@
         </li>
       </ol>
       <div class="dlg-actions su-actions">
-        <button type="button" id="suBtnAiOnly" class="linklike" title="APIキーが必要です。精度は homr より下がります">homr を使わず、AIだけで読む</button>
         <div class="spacer"></div>
-        <button type="button" id="suBtnAiOnce" hidden>今回はAIで読む</button>
         <button type="button" id="suBtnLater">あとで</button>
         <button type="button" id="suBtnGo" class="primary" hidden>▶ はじめる</button>
       </div>
@@ -521,7 +496,7 @@ import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
-VERSION = "2.6"
+VERSION = "2.7"
 LOCK = threading.Lock()          # 読み取りは1枚ずつ（どのエンジンもメモリを多く使うため）
 LAST_ACTIVITY = [0.0]           # 最後にアプリから接続があった時刻（--idle-exit 用）
 MAX_BYTES = 30 * 1024 * 1024
@@ -1199,7 +1174,7 @@ def _idle_watch(srv, limit):
         idle = time.time() - LAST_ACTIVITY[0]
         busy = LOCK.locked() or HOMR_STATE.get("state") == "installing" or AUD_STATE.get("state") == "installing" or OEMER_STATE.get("state") == "installing"
         if idle >= limit and not busy:
-            say("Chopin the Ⅲの画面が閉じられたため、補助プログラムを終了します。")
+            say("Chopin the III was closed, so the helper is exiting. / Chopin the Ⅲの画面が閉じられたため、補助プログラムを終了します。")
             try:
                 srv.shutdown()
             except Exception:
@@ -1220,7 +1195,7 @@ def main():
                     help="アプリからの接続がこの秒数ないとき自動で終了する（ブラウザから起動した場合。0=終了しない）")
     args = ap.parse_args()
     AUDIVERIS_OVERRIDE = args.audiveris
-    say("Chopin the Ⅲ 補助プログラム " + VERSION)
+    say("Chopin the III Helper / Chopin the Ⅲ 補助プログラム " + VERSION)
     if not py_ok_for_oemer():
         say("※ この Python（%d.%d）では oemer は使えません（homr・Audiveris は使えます）。" % sys.version_info[:2])
     if not args.no_setup:
@@ -1239,13 +1214,14 @@ def main():
         srv = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
     except OSError:
         # すでに補助プログラムが動いている（同じ番号を使っている）: そちらを使うので、ここは静かに終わる
-        say("補助プログラムはすでに起動しています。このウィンドウは閉じてかまいません。")
+        say("The helper is already running. You can close this window. / 補助プログラムはすでに起動しています。このウィンドウは閉じてかまいません。")
         return
     if args.idle_exit > 0:
         LAST_ACTIVITY[0] = time.time()
         threading.Thread(target=_idle_watch, args=(srv, args.idle_exit), daemon=True).start()
-        say(f"Chopin the Ⅲの画面を閉じると、{args.idle_exit // 60}分ほどで自動的に終了します。")
-    say(f"Chopin the Ⅲ 補助プログラムを起動しました： http://127.0.0.1:{args.port}")
+        say(f"It exits automatically about {args.idle_exit // 60} minutes after Chopin the III is closed. / Chopin the Ⅲの画面を閉じると、{args.idle_exit // 60}分ほどで自動的に終了します。")
+    say(f"Helper started / Chopin the Ⅲ 補助プログラムを起動しました： http://127.0.0.1:{args.port}")
+    say("While this window is open, Chopin the III can use the recognition engines. Press Ctrl+C to quit.")
     say("このウィンドウを開いている間、Chopin the Ⅲから専用エンジンを使えます。終了は Ctrl+C。")
     try:
         srv.serve_forever()
@@ -1270,18 +1246,20 @@ if /i "%~1"=="--protocol" set "PKM_PROTO=1"
 
 echo.
 echo  ==============================================
-echo    Chopin the Ⅲ 補助プログラム
+echo    Chopin the III Helper / Chopin the Ⅲ 補助プログラム
 echo  ==============================================
+echo   Keep this window open while reading sheet music (minimizing is fine).
 echo   このウィンドウは、楽譜を読み取る間は開いたままにしてください。
 echo   （最小化しても大丈夫です。閉じると読み取りができなくなります）
 echo.
 
 if exist "%UV%" goto haveuv
+echo  [Setup] Downloading required tools (first time only, about a minute)...
 echo  [準備] 必要な道具をダウンロードしています（初回だけ・1分ほど）...
 powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; $env:UV_INSTALL_DIR=(Join-Path $env:LOCALAPPDATA 'PianoKeyMarker'); $env:UV_NO_MODIFY_PATH='1'; irm https://astral.sh/uv/install.ps1 | iex"
 if exist "%PKM%\bin\uv.exe" copy /y "%PKM%\bin\uv.exe" "%UV%" >nul
 if exist "%UV%" goto haveuv
-echo  [準備] 別の方法でダウンロードしています...
+echo  [Setup] Trying another download method... / 別の方法でダウンロードしています...
 powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; $z=Join-Path $env:TEMP 'pkm-uv.zip'; $d=Join-Path $env:TEMP 'pkm-uv'; Invoke-WebRequest -UseBasicParsing 'https://github.com/astral-sh/uv/releases/latest/download/uv-x86_64-pc-windows-msvc.zip' -OutFile $z; Expand-Archive -Force $z $d; Copy-Item (Get-ChildItem $d -Recurse -Filter uv.exe | Select-Object -First 1).FullName (Join-Path $env:LOCALAPPDATA 'PianoKeyMarker\uv.exe') -Force"
 if exist "%UV%" goto haveuv
 goto fail
@@ -1300,6 +1278,7 @@ reg add "HKCU\Software\Classes\pianokeymarker-helper" /v "URL Protocol" /d "" /f
 reg add "HKCU\Software\Classes\pianokeymarker-helper\shell\open\command" /ve /d "\"%ComSpec%\" /c start \"PianoKeyMarker\" /min \"%PKM%\helper.bat\" --protocol" /f >nul
 
 set "PATH=%PKM%;%PATH%"
+echo  Starting the helper (the first time, preparing Python takes 1-3 minutes)...
 echo  補助プログラムを起動します（初回は Python の準備に1〜3分かかります）...
 echo.
 rem 古い補助プログラムが動いていれば終了させる（新しいものに入れ替えるため。自分自身の PowerShell は除く）
@@ -1309,6 +1288,7 @@ rem Chopin the Ⅲの画面（アプリ・ブラウザ）を閉じて3分ほど�
 "%UV%" run --no-project --python 3.12 "%PKM%\pkm_omr_helper.py" --no-setup --idle-exit 180
 if errorlevel 1 goto crashed
 echo.
+echo  The helper has stopped. Next time it starts automatically when you press "Analyze" in Chopin the III.
 echo  補助プログラムを終了しました。次回からは、Chopin the Ⅲで「解析する」を押すと自動で起動します。
 if defined PKM_PROTO exit /b
 timeout /t 8 >nul
@@ -1316,11 +1296,15 @@ exit /b
 
 :crashed
 echo.
+echo  The helper stopped. Please check the messages above.
 echo  補助プログラムが止まりました。上に表示された内容を確認してください。
 pause
 exit /b
 
 :fail
+echo.
+echo  Setup didn't succeed. Check your internet connection and open this file again.
+echo  If it keeps failing, please use the Windows app (exe), which needs no setup.
 echo.
 echo  準備がうまくいきませんでした。
 echo  インターネットにつながっているか確認して、もう一度このファイルを開いてください。
@@ -1362,7 +1346,7 @@ import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
-VERSION = "2.6"
+VERSION = "2.7"
 LOCK = threading.Lock()          # 読み取りは1枚ずつ（どのエンジンもメモリを多く使うため）
 LAST_ACTIVITY = [0.0]           # 最後にアプリから接続があった時刻（--idle-exit 用）
 MAX_BYTES = 30 * 1024 * 1024
@@ -2040,7 +2024,7 @@ def _idle_watch(srv, limit):
         idle = time.time() - LAST_ACTIVITY[0]
         busy = LOCK.locked() or HOMR_STATE.get("state") == "installing" or AUD_STATE.get("state") == "installing" or OEMER_STATE.get("state") == "installing"
         if idle >= limit and not busy:
-            say("Chopin the Ⅲの画面が閉じられたため、補助プログラムを終了します。")
+            say("Chopin the III was closed, so the helper is exiting. / Chopin the Ⅲの画面が閉じられたため、補助プログラムを終了します。")
             try:
                 srv.shutdown()
             except Exception:
@@ -2061,7 +2045,7 @@ def main():
                     help="アプリからの接続がこの秒数ないとき自動で終了する（ブラウザから起動した場合。0=終了しない）")
     args = ap.parse_args()
     AUDIVERIS_OVERRIDE = args.audiveris
-    say("Chopin the Ⅲ 補助プログラム " + VERSION)
+    say("Chopin the III Helper / Chopin the Ⅲ 補助プログラム " + VERSION)
     if not py_ok_for_oemer():
         say("※ この Python（%d.%d）では oemer は使えません（homr・Audiveris は使えます）。" % sys.version_info[:2])
     if not args.no_setup:
@@ -2080,13 +2064,14 @@ def main():
         srv = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
     except OSError:
         # すでに補助プログラムが動いている（同じ番号を使っている）: そちらを使うので、ここは静かに終わる
-        say("補助プログラムはすでに起動しています。このウィンドウは閉じてかまいません。")
+        say("The helper is already running. You can close this window. / 補助プログラムはすでに起動しています。このウィンドウは閉じてかまいません。")
         return
     if args.idle_exit > 0:
         LAST_ACTIVITY[0] = time.time()
         threading.Thread(target=_idle_watch, args=(srv, args.idle_exit), daemon=True).start()
-        say(f"Chopin the Ⅲの画面を閉じると、{args.idle_exit // 60}分ほどで自動的に終了します。")
-    say(f"Chopin the Ⅲ 補助プログラムを起動しました： http://127.0.0.1:{args.port}")
+        say(f"It exits automatically about {args.idle_exit // 60} minutes after Chopin the III is closed. / Chopin the Ⅲの画面を閉じると、{args.idle_exit // 60}分ほどで自動的に終了します。")
+    say(f"Helper started / Chopin the Ⅲ 補助プログラムを起動しました： http://127.0.0.1:{args.port}")
+    say("While this window is open, Chopin the III can use the recognition engines. Press Ctrl+C to quit.")
     say("このウィンドウを開いている間、Chopin the Ⅲから専用エンジンを使えます。終了は Ctrl+C。")
     try:
         srv.serve_forever()
@@ -2097,6 +2082,6 @@ def main():
 if __name__ == "__main__":
     main()
 </script>
-  <script src="js/main.js?v=1793244602839"></script>
+  <script src="js/main.js?v=1793251813534"></script>
 </body>
 </html>

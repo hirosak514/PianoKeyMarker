@@ -30,7 +30,7 @@ import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
-VERSION = "2.6"
+VERSION = "2.7"
 LOCK = threading.Lock()          # 読み取りは1枚ずつ（どのエンジンもメモリを多く使うため）
 LAST_ACTIVITY = [0.0]           # 最後にアプリから接続があった時刻（--idle-exit 用）
 MAX_BYTES = 30 * 1024 * 1024
@@ -708,7 +708,7 @@ def _idle_watch(srv, limit):
         idle = time.time() - LAST_ACTIVITY[0]
         busy = LOCK.locked() or HOMR_STATE.get("state") == "installing" or AUD_STATE.get("state") == "installing" or OEMER_STATE.get("state") == "installing"
         if idle >= limit and not busy:
-            say("Chopin the Ⅲの画面が閉じられたため、補助プログラムを終了します。")
+            say("Chopin the III was closed, so the helper is exiting. / Chopin the Ⅲの画面が閉じられたため、補助プログラムを終了します。")
             try:
                 srv.shutdown()
             except Exception:
@@ -729,7 +729,7 @@ def main():
                     help="アプリからの接続がこの秒数ないとき自動で終了する（ブラウザから起動した場合。0=終了しない）")
     args = ap.parse_args()
     AUDIVERIS_OVERRIDE = args.audiveris
-    say("Chopin the Ⅲ 補助プログラム " + VERSION)
+    say("Chopin the III Helper / Chopin the Ⅲ 補助プログラム " + VERSION)
     if not py_ok_for_oemer():
         say("※ この Python（%d.%d）では oemer は使えません（homr・Audiveris は使えます）。" % sys.version_info[:2])
     if not args.no_setup:
@@ -748,13 +748,14 @@ def main():
         srv = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
     except OSError:
         # すでに補助プログラムが動いている（同じ番号を使っている）: そちらを使うので、ここは静かに終わる
-        say("補助プログラムはすでに起動しています。このウィンドウは閉じてかまいません。")
+        say("The helper is already running. You can close this window. / 補助プログラムはすでに起動しています。このウィンドウは閉じてかまいません。")
         return
     if args.idle_exit > 0:
         LAST_ACTIVITY[0] = time.time()
         threading.Thread(target=_idle_watch, args=(srv, args.idle_exit), daemon=True).start()
-        say(f"Chopin the Ⅲの画面を閉じると、{args.idle_exit // 60}分ほどで自動的に終了します。")
-    say(f"Chopin the Ⅲ 補助プログラムを起動しました： http://127.0.0.1:{args.port}")
+        say(f"It exits automatically about {args.idle_exit // 60} minutes after Chopin the III is closed. / Chopin the Ⅲの画面を閉じると、{args.idle_exit // 60}分ほどで自動的に終了します。")
+    say(f"Helper started / Chopin the Ⅲ 補助プログラムを起動しました： http://127.0.0.1:{args.port}")
+    say("While this window is open, Chopin the III can use the recognition engines. Press Ctrl+C to quit.")
     say("このウィンドウを開いている間、Chopin the Ⅲから専用エンジンを使えます。終了は Ctrl+C。")
     try:
         srv.serve_forever()

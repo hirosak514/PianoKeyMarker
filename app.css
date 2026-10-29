@@ -50,7 +50,7 @@ input.num { width: 52px; }
 
 /* ---- top bar ---- */
 .topbar {
-  display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+  display: flex; align-items: center; gap: 6px; padding: 8px 12px;
   background: var(--head); color: var(--head-ink);
   flex-wrap: wrap; row-gap: 6px; /* ボタンが入りきらない幅では2段に折り返す（右端のボタンが画面外に出ないように） */
 }
@@ -63,7 +63,7 @@ input.num { width: 52px; }
   background: transparent !important; border: 1px solid transparent !important; color: var(--head-ink) !important;
   font-size: 16px; font-weight: 600; padding: 4px 8px !important;
   /* 曲名欄は小さめから始めて余った幅に広がる（ボタンが入る幅なら上部バーを1段に保つ） */
-  flex: 1 1 140px; width: 140px; min-width: 140px; max-width: 360px;
+  flex: 1 1 70px; width: 70px; min-width: 70px; max-width: 360px;
 }
 .title-input:hover, .title-input:focus { border-color: #4a5268 !important; outline: none; }
 
@@ -535,19 +535,6 @@ body.resizing, body.resizing * { cursor: row-resize !important; user-select: non
   .splitter { display: none; }
 }
 
-/* 選んだ小節をAIで読み直す */
-.reread-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px;
-  padding: 6px 10px; background: #eef6ff; border-bottom: 1px solid #b9d6f5; font-size: 12px; }
-.reread-bar[hidden] { display: none; }
-.reread-btns { display: flex; gap: 6px; }
-.reread-mode .measure { cursor: pointer; position: relative; }
-.reread-mode .measure .m-head::before { content: "☐ "; color: #6b7a90; }
-.reread-mode .measure.rr-sel { outline: 3px solid #2f7de1; outline-offset: -1px; background: #eef6ff; }
-.reread-mode .measure.rr-sel .m-head::before { content: "☑ "; color: #2f7de1; }
-.reread-mode .measure.rr-ctx { outline: 2px dashed #8fb8ea; outline-offset: -1px; }
-.reread-mode .measure.rr-nobox { opacity: .55; }
-.measure.rr-done { outline: 3px solid #2fa36b; outline-offset: -1px; transition: outline-color 1s; }
-.reread-mode #btnReread { background: #2f7de1; color: #fff; border-color: #2f7de1; }
 
 /* 写真の補正: 白黒くっきりの強さと拡大鏡 */
 .ph-strength { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
@@ -561,3 +548,4 @@ body.resizing, body.resizing * { cursor: row-resize !important; user-select: non
 /* 「解析する」の左の、読み取り方法のプルダウン */
 .engine-quick { font-size: 12px; padding: 4px 6px; border-radius: 6px; border: 1px solid #9ccfb2; background: #eaf7ef; color: #1e6b43; font-weight: 600; max-width: 220px; }
 .engine-chip.ok { color: #1e6b43; }
+.lang-quick { font-size: 12px; padding: 4px 4px; border-radius: 6px; border: 1px solid #c9cfd8; background: #fff; color: #1f2937; max-width: 120px; }
