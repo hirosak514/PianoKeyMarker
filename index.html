@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chopin the Ⅲ</title>
-  <link rel="stylesheet" href="app.css?v=1793237372823">
+  <link rel="stylesheet" href="app.css?v=1793239447161">
 </head>
 <body>
   <header class="topbar">
@@ -24,6 +24,7 @@
     <div class="btn-group">
       <button id="btnExport" title="JSONファイルとして書き出し（このアプリで読み込み直せる形式）">書き出し</button>
       <button id="btnExportMidi" title="MIDIファイル（.mid）として書き出し（他の楽譜・演奏ソフトで開けます）">MIDI出力</button>
+      <button id="btnExportXml" title="MusicXMLファイル（.musicxml）として書き出し（MuseScore・Finale・Sibelius などの楽譜ソフトで開いて、楽譜として表示・編集できます）">MusicXML出力</button>
       <label class="btn" title="楽譜ファイルを読み込み（MusicXML・MXL・MIDI・このアプリで書き出したJSON）">読み込み<input type="file" id="importFile" accept=".json,.musicxml,.xml,.mxl,.mid,.midi" hidden></label>
     </div>
     <button id="btnTour" title="操作をガイドツアーで順番に説明します">🧭 ガイドツアー</button>
@@ -266,6 +267,7 @@
       <p>「<b id="proFeature"></b>」は、Pro版（有料）でご利用いただけます。</p>
       <ul>
         <li>MIDI出力（ほかの楽譜ソフト・演奏ソフトで開ける .mid ファイル）</li>
+        <li>MusicXML出力（MuseScore などの楽譜ソフトで、楽譜として開ける .musicxml ファイル）</li>
         <li>ライブラリへの保存（複数の楽譜を保存して、あとから開く）</li>
         <li>ファイルへの書き出し・ファイルからの読み込み（MusicXML・MIDI・JSON）</li>
       </ul>
@@ -517,7 +519,7 @@ import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
-VERSION = "2.2"
+VERSION = "2.3"
 LOCK = threading.Lock()          # 読み取りは1枚ずつ（どのエンジンもメモリを多く使うため）
 LAST_ACTIVITY = [0.0]           # 最後にアプリから接続があった時刻（--idle-exit 用）
 MAX_BYTES = 30 * 1024 * 1024
@@ -713,6 +715,94 @@ def check_homr():
 
 
 # ---------------- Audiveris ----------------
+# Windows では「Audiveris をインストールしますか？」→ はい で、ここから自動で入れられる。
+# 公式の .msi（Java も同梱）をダウンロードし、管理者の許可がいらない「展開」（msiexec /a）で
+# %USERPROFILE%\.pkm_omr\audiveris に取り出す。展開できなかったときだけ、通常のインストール
+# （Windows の「変更を許可しますか？」が1回出る）を行う。
+AUD_DIR = os.path.join(DATA_DIR, "audiveris")
+AUD_FALLBACK = ("5.11.0", "https://github.com/Audiveris/audiveris/releases/download/5.11.0/Audiveris-5.11.0-windows-x86_64.msi")
+AUD_STATE = {"state": "idle", "percent": 0, "phase": "", "error": "", "hint": ""}
+
+
+def _aud_set(**kw):
+    AUD_STATE.update(kw)
+
+
+def _latest_audiveris_msi():
+    """GitHub から最新版の Windows 用 .msi の URL を調べる（失敗したら既知の版）"""
+    import urllib.request
+    try:
+        req = urllib.request.Request("https://api.github.com/repos/Audiveris/audiveris/releases/latest",
+                                     headers={"User-Agent": "pkm-omr-helper", "Accept": "application/vnd.github+json"})
+        with urllib.request.urlopen(req, timeout=20) as r:
+            rel = json.loads(r.read().decode("utf-8"))
+        assets = rel.get("assets") or []
+        # コンソール付きでない、64bit Windows 用の .msi
+        for a in assets:
+            n = a.get("name", "")
+            if re.search(r"windows.*x86_64\.msi$", n, re.I) and "console" not in n.lower():
+                return rel.get("tag_name", "?"), a["browser_download_url"]
+        for a in assets:
+            n = a.get("name", "")
+            if re.search(r"windows.*\.msi$", n, re.I):
+                return rel.get("tag_name", "?"), a["browser_download_url"]
+    except Exception as e:  # noqa: BLE001
+        say("Audiveris の最新版を調べられませんでした（%s）。既知の版を使います" % e)
+    return AUD_FALLBACK
+
+
+def install_audiveris():
+    if AUD_STATE["state"] == "installing":
+        return
+    if os.name != "nt":
+        _aud_set(state="error", error="自動インストールは Windows だけです",
+                 hint="https://github.com/Audiveris/audiveris/releases から、お使いのOS用のものをインストールしてください。")
+        return
+    import urllib.request
+    _aud_set(state="installing", percent=1, phase="最新版を調べています…", error="", hint="")
+    say("Audiveris のインストールを始めます")
+    msi = os.path.join(DATA_DIR, "audiveris-setup.msi")
+    try:
+        os.makedirs(DATA_DIR, exist_ok=True)
+        ver, url = _latest_audiveris_msi()
+        _aud_set(percent=3, phase="Audiveris %s をダウンロード中…" % ver)
+        req = urllib.request.Request(url, headers={"User-Agent": "pkm-omr-helper"})
+        with urllib.request.urlopen(req, timeout=60) as r, open(msi, "wb") as f:
+            total = int(r.headers.get("Content-Length") or 0)
+            got = 0
+            while True:
+                chunk = r.read(1 << 20)
+                if not chunk:
+                    break
+                f.write(chunk)
+                got += len(chunk)
+                if total:
+                    _aud_set(percent=3 + round(got / total * 77),
+                             phase="Audiveris %s をダウンロード中（%d / %d MB）" % (ver, got >> 20, total >> 20))
+        _aud_set(percent=82, phase="展開しています（1〜2分）…")
+        shutil.rmtree(AUD_DIR, ignore_errors=True)
+        flags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+        subprocess.run(["msiexec", "/a", msi, "/qn", "TARGETDIR=" + AUD_DIR], timeout=900, creationflags=flags)
+        if not find_audiveris():
+            # 展開できなかった → 通常のインストール（Windows の許可の確認が出ます）
+            _aud_set(percent=90, phase="インストールしています（「このアプリがデバイスに変更を加えることを許可しますか？」が出たら「はい」を押してください）…")
+            subprocess.run(["msiexec", "/i", msi, "/qb"], timeout=1800)
+        if find_audiveris():
+            _aud_set(state="ready", percent=100, phase="準備完了")
+            say("Audiveris のインストールが終わりました: %s" % find_audiveris()[0])
+        else:
+            _aud_set(state="error", error="Audiveris を入れられませんでした",
+                     hint="https://github.com/Audiveris/audiveris/releases から手動でインストールしてください。")
+    except Exception as e:  # noqa: BLE001
+        say("Audiveris のインストールに失敗: %s" % e)
+        _aud_set(state="error", error=str(e), hint=_explain_error(str(e)))
+    finally:
+        try:
+            os.remove(msi)
+        except OSError:
+            pass
+
+
 def find_audiveris():
     cands = []
     if AUDIVERIS_OVERRIDE:
@@ -729,6 +819,8 @@ def find_audiveris():
             if base:
                 cands += [os.path.join(base, "Audiveris", "Audiveris.exe"), os.path.join(base, "Programs", "Audiveris", "Audiveris.exe")]
         cands.append(os.path.expanduser(r"~\scoop\apps\audiveris\current\Audiveris.exe"))
+        # この補助プログラムが展開したもの（install_audiveris）
+        cands += sorted(glob.glob(os.path.join(AUD_DIR, "**", "Audiveris.exe"), recursive=True))
     elif sys.platform == "darwin":
         for base in ("/Applications", os.path.expanduser("~/Applications")):
             cands += glob.glob(os.path.join(base, "Audiveris*.app", "Contents", "MacOS", "Audiveris*"))
@@ -756,7 +848,11 @@ def engines_status():
         "homr": {"available": hs == "ready", "ready": hs == "ready", "installable": bool(uv_cmd()), "note": homr_note,
                  "label": "homr（いちばんおすすめ）", "install": {k: HOMR_STATE[k] for k in ("state", "percent", "phase", "error", "hint")},
                  "elapsed": round(time.time() - HOMR_STATE["started"]) if hs == "installing" else 0},
-        "audiveris": {"available": find_audiveris() is not None, "note": "" if find_audiveris() else "Audiveris がインストールされていません", "label": "Audiveris（スキャン・印刷楽譜向け）"},
+        "audiveris": {"available": find_audiveris() is not None,
+                      "note": "" if find_audiveris() else ("インストール中 %d%%" % AUD_STATE["percent"] if AUD_STATE["state"] == "installing" else "Audiveris がインストールされていません"),
+                      "label": "Audiveris（スキャン・印刷楽譜向け）",
+                      "installable": os.name == "nt",
+                      "install": dict(AUD_STATE)},
         "oemer": {"available": find_oemer() is not None, "note": "" if find_oemer() else ("Python 3.10〜3.13 が必要です" if not py_ok_for_oemer() else "インストールされていません"), "label": "oemer"},
     }
 
@@ -861,6 +957,10 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         u = urlparse(self.path)
+        if u.path.rstrip("/") == "/audiveris/install":
+            if AUD_STATE["state"] != "installing" and not find_audiveris():
+                threading.Thread(target=install_audiveris, daemon=True).start()
+            return self.reply(200, {"ok": True})
         if u.path.rstrip("/") == "/homr/install":
             if HOMR_STATE["state"] != "installing":
                 threading.Thread(target=install_homr, daemon=True).start()
@@ -931,7 +1031,7 @@ def _idle_watch(srv, limit):
     while True:
         time.sleep(5)
         idle = time.time() - LAST_ACTIVITY[0]
-        busy = LOCK.locked() or HOMR_STATE.get("state") == "installing"
+        busy = LOCK.locked() or HOMR_STATE.get("state") == "installing" or AUD_STATE.get("state") == "installing"
         if idle >= limit and not busy:
             say("Chopin the Ⅲの画面が閉じられたため、補助プログラムを終了します。")
             try:
@@ -1092,7 +1192,7 @@ import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
-VERSION = "2.2"
+VERSION = "2.3"
 LOCK = threading.Lock()          # 読み取りは1枚ずつ（どのエンジンもメモリを多く使うため）
 LAST_ACTIVITY = [0.0]           # 最後にアプリから接続があった時刻（--idle-exit 用）
 MAX_BYTES = 30 * 1024 * 1024
@@ -1288,6 +1388,94 @@ def check_homr():
 
 
 # ---------------- Audiveris ----------------
+# Windows では「Audiveris をインストールしますか？」→ はい で、ここから自動で入れられる。
+# 公式の .msi（Java も同梱）をダウンロードし、管理者の許可がいらない「展開」（msiexec /a）で
+# %USERPROFILE%\.pkm_omr\audiveris に取り出す。展開できなかったときだけ、通常のインストール
+# （Windows の「変更を許可しますか？」が1回出る）を行う。
+AUD_DIR = os.path.join(DATA_DIR, "audiveris")
+AUD_FALLBACK = ("5.11.0", "https://github.com/Audiveris/audiveris/releases/download/5.11.0/Audiveris-5.11.0-windows-x86_64.msi")
+AUD_STATE = {"state": "idle", "percent": 0, "phase": "", "error": "", "hint": ""}
+
+
+def _aud_set(**kw):
+    AUD_STATE.update(kw)
+
+
+def _latest_audiveris_msi():
+    """GitHub から最新版の Windows 用 .msi の URL を調べる（失敗したら既知の版）"""
+    import urllib.request
+    try:
+        req = urllib.request.Request("https://api.github.com/repos/Audiveris/audiveris/releases/latest",
+                                     headers={"User-Agent": "pkm-omr-helper", "Accept": "application/vnd.github+json"})
+        with urllib.request.urlopen(req, timeout=20) as r:
+            rel = json.loads(r.read().decode("utf-8"))
+        assets = rel.get("assets") or []
+        # コンソール付きでない、64bit Windows 用の .msi
+        for a in assets:
+            n = a.get("name", "")
+            if re.search(r"windows.*x86_64\.msi$", n, re.I) and "console" not in n.lower():
+                return rel.get("tag_name", "?"), a["browser_download_url"]
+        for a in assets:
+            n = a.get("name", "")
+            if re.search(r"windows.*\.msi$", n, re.I):
+                return rel.get("tag_name", "?"), a["browser_download_url"]
+    except Exception as e:  # noqa: BLE001
+        say("Audiveris の最新版を調べられませんでした（%s）。既知の版を使います" % e)
+    return AUD_FALLBACK
+
+
+def install_audiveris():
+    if AUD_STATE["state"] == "installing":
+        return
+    if os.name != "nt":
+        _aud_set(state="error", error="自動インストールは Windows だけです",
+                 hint="https://github.com/Audiveris/audiveris/releases から、お使いのOS用のものをインストールしてください。")
+        return
+    import urllib.request
+    _aud_set(state="installing", percent=1, phase="最新版を調べています…", error="", hint="")
+    say("Audiveris のインストールを始めます")
+    msi = os.path.join(DATA_DIR, "audiveris-setup.msi")
+    try:
+        os.makedirs(DATA_DIR, exist_ok=True)
+        ver, url = _latest_audiveris_msi()
+        _aud_set(percent=3, phase="Audiveris %s をダウンロード中…" % ver)
+        req = urllib.request.Request(url, headers={"User-Agent": "pkm-omr-helper"})
+        with urllib.request.urlopen(req, timeout=60) as r, open(msi, "wb") as f:
+            total = int(r.headers.get("Content-Length") or 0)
+            got = 0
+            while True:
+                chunk = r.read(1 << 20)
+                if not chunk:
+                    break
+                f.write(chunk)
+                got += len(chunk)
+                if total:
+                    _aud_set(percent=3 + round(got / total * 77),
+                             phase="Audiveris %s をダウンロード中（%d / %d MB）" % (ver, got >> 20, total >> 20))
+        _aud_set(percent=82, phase="展開しています（1〜2分）…")
+        shutil.rmtree(AUD_DIR, ignore_errors=True)
+        flags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+        subprocess.run(["msiexec", "/a", msi, "/qn", "TARGETDIR=" + AUD_DIR], timeout=900, creationflags=flags)
+        if not find_audiveris():
+            # 展開できなかった → 通常のインストール（Windows の許可の確認が出ます）
+            _aud_set(percent=90, phase="インストールしています（「このアプリがデバイスに変更を加えることを許可しますか？」が出たら「はい」を押してください）…")
+            subprocess.run(["msiexec", "/i", msi, "/qb"], timeout=1800)
+        if find_audiveris():
+            _aud_set(state="ready", percent=100, phase="準備完了")
+            say("Audiveris のインストールが終わりました: %s" % find_audiveris()[0])
+        else:
+            _aud_set(state="error", error="Audiveris を入れられませんでした",
+                     hint="https://github.com/Audiveris/audiveris/releases から手動でインストールしてください。")
+    except Exception as e:  # noqa: BLE001
+        say("Audiveris のインストールに失敗: %s" % e)
+        _aud_set(state="error", error=str(e), hint=_explain_error(str(e)))
+    finally:
+        try:
+            os.remove(msi)
+        except OSError:
+            pass
+
+
 def find_audiveris():
     cands = []
     if AUDIVERIS_OVERRIDE:
@@ -1304,6 +1492,8 @@ def find_audiveris():
             if base:
                 cands += [os.path.join(base, "Audiveris", "Audiveris.exe"), os.path.join(base, "Programs", "Audiveris", "Audiveris.exe")]
         cands.append(os.path.expanduser(r"~\scoop\apps\audiveris\current\Audiveris.exe"))
+        # この補助プログラムが展開したもの（install_audiveris）
+        cands += sorted(glob.glob(os.path.join(AUD_DIR, "**", "Audiveris.exe"), recursive=True))
     elif sys.platform == "darwin":
         for base in ("/Applications", os.path.expanduser("~/Applications")):
             cands += glob.glob(os.path.join(base, "Audiveris*.app", "Contents", "MacOS", "Audiveris*"))
@@ -1331,7 +1521,11 @@ def engines_status():
         "homr": {"available": hs == "ready", "ready": hs == "ready", "installable": bool(uv_cmd()), "note": homr_note,
                  "label": "homr（いちばんおすすめ）", "install": {k: HOMR_STATE[k] for k in ("state", "percent", "phase", "error", "hint")},
                  "elapsed": round(time.time() - HOMR_STATE["started"]) if hs == "installing" else 0},
-        "audiveris": {"available": find_audiveris() is not None, "note": "" if find_audiveris() else "Audiveris がインストールされていません", "label": "Audiveris（スキャン・印刷楽譜向け）"},
+        "audiveris": {"available": find_audiveris() is not None,
+                      "note": "" if find_audiveris() else ("インストール中 %d%%" % AUD_STATE["percent"] if AUD_STATE["state"] == "installing" else "Audiveris がインストールされていません"),
+                      "label": "Audiveris（スキャン・印刷楽譜向け）",
+                      "installable": os.name == "nt",
+                      "install": dict(AUD_STATE)},
         "oemer": {"available": find_oemer() is not None, "note": "" if find_oemer() else ("Python 3.10〜3.13 が必要です" if not py_ok_for_oemer() else "インストールされていません"), "label": "oemer"},
     }
 
@@ -1436,6 +1630,10 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         u = urlparse(self.path)
+        if u.path.rstrip("/") == "/audiveris/install":
+            if AUD_STATE["state"] != "installing" and not find_audiveris():
+                threading.Thread(target=install_audiveris, daemon=True).start()
+            return self.reply(200, {"ok": True})
         if u.path.rstrip("/") == "/homr/install":
             if HOMR_STATE["state"] != "installing":
                 threading.Thread(target=install_homr, daemon=True).start()
@@ -1506,7 +1704,7 @@ def _idle_watch(srv, limit):
     while True:
         time.sleep(5)
         idle = time.time() - LAST_ACTIVITY[0]
-        busy = LOCK.locked() or HOMR_STATE.get("state") == "installing"
+        busy = LOCK.locked() or HOMR_STATE.get("state") == "installing" or AUD_STATE.get("state") == "installing"
         if idle >= limit and not busy:
             say("Chopin the Ⅲの画面が閉じられたため、補助プログラムを終了します。")
             try:
@@ -1565,6 +1763,6 @@ def main():
 if __name__ == "__main__":
     main()
 </script>
-  <script src="js/main.js?v=1793237372823"></script>
+  <script src="js/main.js?v=1793239447161"></script>
 </body>
 </html>
