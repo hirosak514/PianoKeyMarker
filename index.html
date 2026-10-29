@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chopin the Ⅲ</title>
-  <link rel="stylesheet" href="app.css?v=1793242350428">
+  <link rel="stylesheet" href="app.css?v=1793243277127">
 </head>
 <body>
   <header class="topbar">
@@ -70,6 +70,7 @@
       <div class="analyze-bar">
         <select id="aiProvider" aria-label="AIの種類"></select>
         <span id="aiModel" class="model-chip"></span>
+        <select id="engineQuick" class="engine-quick" aria-label="読み取りに使う方法" title="楽譜の読み取りに使う方法を選びます"></select>
         <span id="engineChip" class="model-chip engine-chip" hidden></span>
         <button id="btnAnalyze" title="表示中のページだけを解析（そのページの小節を置き換え）">このページを解析</button>
         <button id="btnAnalyzeAll" class="primary" title="すべてのページを順番に解析して1曲につなげる">全ページを解析して1曲に</button>
@@ -1906,6 +1907,6 @@ def main():
 if __name__ == "__main__":
     main()
 </script>
-  <script src="js/main.js?v=1793242350428"></script>
+  <script src="js/main.js?v=1793243277127"></script>
 </body>
 </html>

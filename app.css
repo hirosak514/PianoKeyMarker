@@ -557,3 +557,7 @@ body.resizing, body.resizing * { cursor: row-resize !important; user-select: non
 .ph-stage canvas.ph-loupe { position: absolute; inset: auto; border-radius: 50%; border: 3px solid #ff6a3d;
   box-shadow: 0 4px 16px rgba(0,0,0,.5); pointer-events: none; background: #fff; z-index: 2; }
 .ph-loupe[hidden] { display: none; }
+
+/* 「解析する」の左の、読み取り方法のプルダウン */
+.engine-quick { font-size: 12px; padding: 4px 6px; border-radius: 6px; border: 1px solid #9ccfb2; background: #eaf7ef; color: #1e6b43; font-weight: 600; max-width: 220px; }
+.engine-chip.ok { color: #1e6b43; }
