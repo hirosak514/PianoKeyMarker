@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chopin the Ⅲ</title>
-  <link rel="stylesheet" href="app.css?v=1793232158640">
+  <link rel="stylesheet" href="app.css?v=1793233677699">
 </head>
 <body>
   <header class="topbar">
@@ -467,14 +467,15 @@
   <dialog id="dlgPhoto" class="dlg photo">
     <div class="ph-head">
       <b>写真の補正</b>
-      <span class="hint">四隅の ● を楽譜の角までドラッグすると、傾きや台形のゆがみを直して切り抜きます</span>
+      <span class="hint">四隅の ● を楽譜の角までドラッグすると、傾きや台形のゆがみを直して切り抜きます。画像にマウスを重ねる（指で触れる）と拡大鏡で細い線を確認できます</span>
     </div>
-    <div class="ph-stage"><canvas id="phCanvas"></canvas></div>
+    <div class="ph-stage"><canvas id="phCanvas"></canvas><canvas id="phLoupe" class="ph-loupe" hidden></canvas></div>
     <div class="ph-tools">
       <button type="button" id="phRotL">⟲ 左に回転</button>
       <button type="button" id="phRotR">⟳ 右に回転</button>
       <button type="button" id="phCornersReset">四隅をリセット</button>
       <label class="chk"><input type="checkbox" id="phEnhance"> 白黒くっきり（影を除去）</label>
+      <label class="ph-strength" title="線が消えてしまうときは左へ、背景の汚れや影が残るときは右へ">強さ <input type="range" id="phStrength" min="0" max="100" step="5" value="35"> <span id="phStrengthVal">35</span></label>
       <button type="button" id="phRevert">元の画像に戻す</button>
       <div class="spacer"></div>
       <button type="button" id="phCancel">キャンセル</button>
@@ -1564,6 +1565,6 @@ def main():
 if __name__ == "__main__":
     main()
 </script>
-  <script src="js/main.js?v=1793232158640"></script>
+  <script src="js/main.js?v=1793233677699"></script>
 </body>
 </html>

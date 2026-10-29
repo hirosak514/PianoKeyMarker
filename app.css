@@ -548,3 +548,12 @@ body.resizing, body.resizing * { cursor: row-resize !important; user-select: non
 .reread-mode .measure.rr-nobox { opacity: .55; }
 .measure.rr-done { outline: 3px solid #2fa36b; outline-offset: -1px; transition: outline-color 1s; }
 .reread-mode #btnReread { background: #2f7de1; color: #fff; border-color: #2f7de1; }
+
+/* 写真の補正: 白黒くっきりの強さと拡大鏡 */
+.ph-strength { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
+.ph-strength input[type="range"] { width: 120px; }
+.ph-strength input:disabled { opacity: .4; }
+#phStrengthVal { min-width: 2em; text-align: right; font-variant-numeric: tabular-nums; }
+.ph-stage canvas.ph-loupe { position: absolute; inset: auto; border-radius: 50%; border: 3px solid #ff6a3d;
+  box-shadow: 0 4px 16px rgba(0,0,0,.5); pointer-events: none; background: #fff; z-index: 2; }
+.ph-loupe[hidden] { display: none; }
