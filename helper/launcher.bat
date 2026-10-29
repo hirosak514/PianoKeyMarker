@@ -103,7 +103,7 @@ import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
-VERSION = "2.4"
+VERSION = "2.5"
 LOCK = threading.Lock()          # 読み取りは1枚ずつ（どのエンジンもメモリを多く使うため）
 LAST_ACTIVITY = [0.0]           # 最後にアプリから接続があった時刻（--idle-exit 用）
 MAX_BYTES = 30 * 1024 * 1024
@@ -363,12 +363,30 @@ def install_audiveris():
                 if total:
                     _aud_set(percent=3 + round(got / total * 77),
                              phase="Audiveris %s をダウンロード中（%d / %d MB）" % (ver, got >> 20, total >> 20))
-        _aud_set(percent=82, phase="展開しています（1〜2分）…")
+        # ダウンロードが途中で切れていないか（大きさ・ファイルの先頭の印）
+        size = os.path.getsize(msi)
+        with open(msi, "rb") as f:
+            head = f.read(8)
+        if (total and size != total) or head[:4] != b"\xd0\xcf\x11\xe0":
+            raise RuntimeError("ダウンロードが途中で切れました（%d / %d バイト）" % (size, total))
+        _aud_set(percent=82, phase="展開しています（1分ほど）…")
         shutil.rmtree(AUD_DIR, ignore_errors=True)
         flags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
-        subprocess.run(["msiexec", "/a", msi, "/qn", "TARGETDIR=" + AUD_DIR], timeout=900, creationflags=flags)
+        # 1) Windows のインストーラーを使わずに、Python の部品（pymsi）で中身を取り出す
+        #    （管理者の許可もいらず、Windows Installer の不具合・制限の影響も受けない）
+        uv = uv_cmd()
+        if uv:
+            r = subprocess.run(uv + ["run", "--no-project", "--python", "3.12", "--with", "pymsi", "python", "-m", "pymsi",
+                                     "extract", msi, "-o", AUD_DIR], capture_output=True, text=True, encoding="utf-8",
+                               errors="replace", timeout=900, creationflags=flags)
+            if r.returncode != 0:
+                say("pymsi での展開に失敗: " + (r.stderr or r.stdout or "")[-500:])
         if not find_audiveris():
-            # 展開できなかった → 通常のインストール（Windows の許可の確認が出ます）
+            # 2) Windows の「管理用インストール」（展開だけ・許可はいらない）
+            _aud_set(percent=88, phase="別の方法で展開しています…")
+            subprocess.run(["msiexec", "/a", msi, "/qn", "TARGETDIR=" + AUD_DIR], timeout=900, creationflags=flags)
+        if not find_audiveris():
+            # 3) 通常のインストール（Windows の許可の確認が出ます）
             _aud_set(percent=90, phase="インストールしています（「このアプリがデバイスに変更を加えることを許可しますか？」が出たら「はい」を押してください）…")
             subprocess.run(["msiexec", "/i", msi, "/qb"], timeout=1800)
         if find_audiveris():
