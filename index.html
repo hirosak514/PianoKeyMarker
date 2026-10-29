@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chopin the Ⅲ</title>
-  <link rel="stylesheet" href="app.css?v=1793189283994">
+  <link rel="stylesheet" href="app.css?v=1793232158640">
 </head>
 <body>
   <header class="topbar">
@@ -84,6 +84,14 @@
         <label title="AIが調号を読み間違えたときはここで直すと、すべての音が計算し直されます">調号 <select id="keyFifths"></select></label>
         <span id="stats" class="muted"></span>
         <span id="suspectNav"></span>
+        <button id="btnReread" class="small" title="選んだ小節（複数可）だけをAIで読み直します。前後1小節も手がかりとして一緒に送ります。↶ で元に戻せます">🤖 小節をAIで読み直す</button>
+      </div>
+      <div id="rereadBar" class="reread-bar" hidden>
+        <span id="rereadInfo"></span>
+        <span class="reread-btns">
+          <button id="btnRereadCancel" class="small">キャンセル</button>
+          <button id="btnRereadGo" class="small primary" disabled>🤖 AIで読み直す</button>
+        </span>
       </div>
       <div id="measures" class="measures" tabindex="-1"></div>
       <div id="detail" class="detail"></div>
@@ -1556,6 +1564,6 @@ def main():
 if __name__ == "__main__":
     main()
 </script>
-  <script src="js/main.js?v=1793189283994"></script>
+  <script src="js/main.js?v=1793232158640"></script>
 </body>
 </html>

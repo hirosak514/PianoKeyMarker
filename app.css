@@ -534,3 +534,17 @@ body.resizing, body.resizing * { cursor: row-resize !important; user-select: non
   .keyboard { height: 110px; }
   .splitter { display: none; }
 }
+
+/* 選んだ小節をAIで読み直す */
+.reread-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px;
+  padding: 6px 10px; background: #eef6ff; border-bottom: 1px solid #b9d6f5; font-size: 12px; }
+.reread-bar[hidden] { display: none; }
+.reread-btns { display: flex; gap: 6px; }
+.reread-mode .measure { cursor: pointer; position: relative; }
+.reread-mode .measure .m-head::before { content: "☐ "; color: #6b7a90; }
+.reread-mode .measure.rr-sel { outline: 3px solid #2f7de1; outline-offset: -1px; background: #eef6ff; }
+.reread-mode .measure.rr-sel .m-head::before { content: "☑ "; color: #2f7de1; }
+.reread-mode .measure.rr-ctx { outline: 2px dashed #8fb8ea; outline-offset: -1px; }
+.reread-mode .measure.rr-nobox { opacity: .55; }
+.measure.rr-done { outline: 3px solid #2fa36b; outline-offset: -1px; transition: outline-color 1s; }
+.reread-mode #btnReread { background: #2f7de1; color: #fff; border-color: #2f7de1; }
