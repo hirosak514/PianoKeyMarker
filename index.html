@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chopin the Ⅲ</title>
-  <link rel="stylesheet" href="app.css?v=1793240070199">
+  <link rel="stylesheet" href="app.css?v=1793240921814">
 </head>
 <body>
   <header class="topbar">
@@ -519,7 +519,7 @@ import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
-VERSION = "2.3"
+VERSION = "2.4"
 LOCK = threading.Lock()          # 読み取りは1枚ずつ（どのエンジンもメモリを多く使うため）
 LAST_ACTIVITY = [0.0]           # 最後にアプリから接続があった時刻（--idle-exit 用）
 MAX_BYTES = 30 * 1024 * 1024
@@ -803,6 +803,54 @@ def install_audiveris():
             pass
 
 
+# ---------------- 自分自身の更新（2.4 から） ----------------
+# アプリから「新しくして」と頼まれたら、アプリの公式サイトから新しい補助プログラムを取ってきて
+# 置き換え、起動し直す。取ってくる場所は決まったURLだけ（頼む側から中身を受け取ることはしない）。
+UPDATE_BASE = "https://hirosak514.github.io/PianoKeyMarker/helper/"
+UPDATE_STATE = {"state": "idle", "error": ""}
+
+
+def _ver_tuple(v):
+    try:
+        return tuple(int(x) for x in str(v).split("."))
+    except ValueError:
+        return (0,)
+
+
+def self_update():
+    """新しい補助プログラム（.py と 起動用 .bat）を取ってきて置き換え、起動し直す（Windows のブラウザ版用）"""
+    import urllib.request
+    UPDATE_STATE.update(state="updating", error="")
+    try:
+        here = os.path.dirname(os.path.abspath(__file__))
+        bat = os.path.join(here, "helper.bat")
+        if os.name != "nt" or not os.path.isfile(bat):
+            raise RuntimeError("この補助プログラムは自動で更新できません（Windowsアプリ版はアプリの更新で新しくなります）")
+        def get(name):
+            req = urllib.request.Request(UPDATE_BASE + name + "?t=%d" % int(time.time()), headers={"User-Agent": "pkm-omr-helper"})
+            with urllib.request.urlopen(req, timeout=60) as r:
+                return r.read()
+        new_bat = get("launcher.bat")
+        text = new_bat.decode("utf-8", "replace")
+        m = re.search(r'VERSION = "([0-9.]+)"', text)
+        if "PKM-HELPER-PY BEGIN" not in text or not m:
+            raise RuntimeError("更新用のファイルが正しくありません")
+        if _ver_tuple(m.group(1)) <= _ver_tuple(VERSION):
+            UPDATE_STATE.update(state="latest")
+            return
+        with open(bat + ".new", "wb") as f:
+            f.write(new_bat)
+        os.replace(bat + ".new", bat)
+        say("補助プログラムを %s に更新しました。起動し直します…" % m.group(1))
+        UPDATE_STATE.update(state="restarting")
+        # 新しい起動用ファイルを最小化で起動する（起動時に、この古い補助プログラムを終了させる）
+        subprocess.Popen(["cmd", "/c", "start", "PianoKeyMarker", "/min", bat, "--protocol"],
+                         creationflags=getattr(subprocess, "DETACHED_PROCESS", 0) | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0))
+    except Exception as e:  # noqa: BLE001
+        say("補助プログラムの更新に失敗: %s" % e)
+        UPDATE_STATE.update(state="error", error=str(e))
+
+
 def find_audiveris():
     cands = []
     if AUDIVERIS_OVERRIDE:
@@ -950,13 +998,17 @@ class Handler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path.rstrip("/")
         if path in ("", "/health"):
             eng = engines_status()
-            self.reply(200, {"ok": True, "version": VERSION, "engines": eng,
+            self.reply(200, {"ok": True, "version": VERSION, "engines": eng, "selfUpdate": UPDATE_STATE,
                              "available": any(e["available"] for e in eng.values()), "engine": "multi"})
         else:
             self.reply(404, {"error": "not found"})
 
     def do_POST(self):
         u = urlparse(self.path)
+        if u.path.rstrip("/") == "/self-update":
+            if UPDATE_STATE["state"] not in ("updating", "restarting"):
+                threading.Thread(target=self_update, daemon=True).start()
+            return self.reply(200, {"ok": True})
         if u.path.rstrip("/") == "/audiveris/install":
             if AUD_STATE["state"] != "installing" and not find_audiveris():
                 threading.Thread(target=install_audiveris, daemon=True).start()
@@ -1136,6 +1188,9 @@ reg add "HKCU\Software\Classes\pianokeymarker-helper\shell\open\command" /ve /d 
 set "PATH=%PKM%;%PATH%"
 echo  補助プログラムを起動します（初回は Python の準備に1〜3分かかります）...
 echo.
+rem 古い補助プログラムが動いていれば終了させる（新しいものに入れ替えるため。自分自身の PowerShell は除く）
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-CimInstance Win32_Process | Where-Object { $_.ProcessId -ne $PID -and $_.CommandLine -like '*pkm_omr_helper.py*' } | ForEach-Object { Invoke-CimMethod -InputObject $_ -MethodName Terminate | Out-Null }" >nul 2>&1
+timeout /t 1 /nobreak >nul
 rem Chopin the Ⅲの画面（アプリ・ブラウザ）を閉じて3分ほど接続がなければ、自動で終了する
 "%UV%" run --no-project --python 3.12 "%PKM%\pkm_omr_helper.py" --no-setup --idle-exit 180
 if errorlevel 1 goto crashed
@@ -1192,7 +1247,7 @@ import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
-VERSION = "2.3"
+VERSION = "2.4"
 LOCK = threading.Lock()          # 読み取りは1枚ずつ（どのエンジンもメモリを多く使うため）
 LAST_ACTIVITY = [0.0]           # 最後にアプリから接続があった時刻（--idle-exit 用）
 MAX_BYTES = 30 * 1024 * 1024
@@ -1476,6 +1531,54 @@ def install_audiveris():
             pass
 
 
+# ---------------- 自分自身の更新（2.4 から） ----------------
+# アプリから「新しくして」と頼まれたら、アプリの公式サイトから新しい補助プログラムを取ってきて
+# 置き換え、起動し直す。取ってくる場所は決まったURLだけ（頼む側から中身を受け取ることはしない）。
+UPDATE_BASE = "https://hirosak514.github.io/PianoKeyMarker/helper/"
+UPDATE_STATE = {"state": "idle", "error": ""}
+
+
+def _ver_tuple(v):
+    try:
+        return tuple(int(x) for x in str(v).split("."))
+    except ValueError:
+        return (0,)
+
+
+def self_update():
+    """新しい補助プログラム（.py と 起動用 .bat）を取ってきて置き換え、起動し直す（Windows のブラウザ版用）"""
+    import urllib.request
+    UPDATE_STATE.update(state="updating", error="")
+    try:
+        here = os.path.dirname(os.path.abspath(__file__))
+        bat = os.path.join(here, "helper.bat")
+        if os.name != "nt" or not os.path.isfile(bat):
+            raise RuntimeError("この補助プログラムは自動で更新できません（Windowsアプリ版はアプリの更新で新しくなります）")
+        def get(name):
+            req = urllib.request.Request(UPDATE_BASE + name + "?t=%d" % int(time.time()), headers={"User-Agent": "pkm-omr-helper"})
+            with urllib.request.urlopen(req, timeout=60) as r:
+                return r.read()
+        new_bat = get("launcher.bat")
+        text = new_bat.decode("utf-8", "replace")
+        m = re.search(r'VERSION = "([0-9.]+)"', text)
+        if "PKM-HELPER-PY BEGIN" not in text or not m:
+            raise RuntimeError("更新用のファイルが正しくありません")
+        if _ver_tuple(m.group(1)) <= _ver_tuple(VERSION):
+            UPDATE_STATE.update(state="latest")
+            return
+        with open(bat + ".new", "wb") as f:
+            f.write(new_bat)
+        os.replace(bat + ".new", bat)
+        say("補助プログラムを %s に更新しました。起動し直します…" % m.group(1))
+        UPDATE_STATE.update(state="restarting")
+        # 新しい起動用ファイルを最小化で起動する（起動時に、この古い補助プログラムを終了させる）
+        subprocess.Popen(["cmd", "/c", "start", "PianoKeyMarker", "/min", bat, "--protocol"],
+                         creationflags=getattr(subprocess, "DETACHED_PROCESS", 0) | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0))
+    except Exception as e:  # noqa: BLE001
+        say("補助プログラムの更新に失敗: %s" % e)
+        UPDATE_STATE.update(state="error", error=str(e))
+
+
 def find_audiveris():
     cands = []
     if AUDIVERIS_OVERRIDE:
@@ -1623,13 +1726,17 @@ class Handler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path.rstrip("/")
         if path in ("", "/health"):
             eng = engines_status()
-            self.reply(200, {"ok": True, "version": VERSION, "engines": eng,
+            self.reply(200, {"ok": True, "version": VERSION, "engines": eng, "selfUpdate": UPDATE_STATE,
                              "available": any(e["available"] for e in eng.values()), "engine": "multi"})
         else:
             self.reply(404, {"error": "not found"})
 
     def do_POST(self):
         u = urlparse(self.path)
+        if u.path.rstrip("/") == "/self-update":
+            if UPDATE_STATE["state"] not in ("updating", "restarting"):
+                threading.Thread(target=self_update, daemon=True).start()
+            return self.reply(200, {"ok": True})
         if u.path.rstrip("/") == "/audiveris/install":
             if AUD_STATE["state"] != "installing" and not find_audiveris():
                 threading.Thread(target=install_audiveris, daemon=True).start()
@@ -1763,6 +1870,6 @@ def main():
 if __name__ == "__main__":
     main()
 </script>
-  <script src="js/main.js?v=1793240070199"></script>
+  <script src="js/main.js?v=1793240921814"></script>
 </body>
 </html>
