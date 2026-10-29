@@ -561,7 +561,7 @@ body.rtl dialog code, body.rtl dialog pre, body.rtl dialog input, body.rtl .su-c
 /* 五線で編集 */
 .staff-wrap { margin: 6px 0; border: 1px solid var(--line); border-radius: 8px; background: #fff; padding: 4px 6px; }
 .staff-head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; font-size: 12px; }
-.staff-edit { max-width: 720px; cursor: pointer; touch-action: manipulation; }
+.staff-edit { max-width: 720px; cursor: pointer; touch-action: none; position: relative; }
 .staff-edit svg .st-R { fill: #1f5fbf; }
 .staff-edit svg .st-L { fill: #c0661a; }
 .staff-edit svg .st-sel, .staff-edit svg .st-sel * { fill: #1d8bff; stroke: none; }
@@ -587,3 +587,6 @@ body.rtl dialog code, body.rtl dialog pre, body.rtl dialog input, body.rtl .su-c
 .editor-pane .detail { flex: 1 1 auto; max-height: none; min-height: 0; overflow-y: auto; }
 .m-nav { display: inline-flex; align-items: center; gap: 4px; }
 .m-nav button { min-width: 30px; padding-left: 6px; padding-right: 6px; }
+.staff-edit .abcjs-notehead { cursor: ns-resize; }
+.staff-drag-tip { position: absolute; pointer-events: none; background: #1f2937; color: #fff; font-size: 12px; font-weight: 600; padding: 2px 7px; border-radius: 6px; white-space: nowrap; z-index: 5; }
+.d-undo-group button { min-width: 30px; }
