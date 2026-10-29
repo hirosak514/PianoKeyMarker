@@ -581,3 +581,9 @@ body.rtl dialog code, body.rtl dialog pre, body.rtl dialog input, body.rtl .su-c
 .analyze-bar.min > :not(.ana-toggle):not(#aiStatus) { display: none !important; }
 .analyze-bar.min #aiStatus { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .analyze-bar.min #aiStatus br { display: none; }
+
+/* 小節の一覧は出さず、選んだ小節の編集欄（五線）を広く使う */
+.measures[hidden] { display: none !important; }
+.editor-pane .detail { flex: 1 1 auto; max-height: none; min-height: 0; overflow-y: auto; }
+.m-nav { display: inline-flex; align-items: center; gap: 4px; }
+.m-nav button { min-width: 30px; padding-left: 6px; padding-right: 6px; }
