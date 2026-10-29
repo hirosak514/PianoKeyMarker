@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chopin the Ⅲ</title>
-  <link rel="stylesheet" href="app.css?v=1793270215558">
+  <link rel="stylesheet" href="app.css?v=1793271053061">
 </head>
 <body>
   <header class="topbar">
@@ -68,7 +68,8 @@
         </div>
         <div id="imgWrap" class="img-wrap" hidden><img id="imgEl" alt="楽譜画像"><div id="imgOverlay" class="img-overlay"></div></div>
       </div>
-      <div class="analyze-bar">
+      <div class="analyze-bar" id="analyzeBar">
+        <button id="btnAnaToggle" class="ana-toggle" aria-expanded="true" title="解析の欄をたたむ（楽譜を大きく表示）">▾</button>
         <select id="engineQuick" class="engine-quick" aria-label="読み取りに使う方法" title="楽譜の読み取りに使う方法を選びます"></select>
         <span id="engineChip" class="model-chip engine-chip" hidden></span>
         <button id="btnAnalyze" title="表示中のページだけを解析（そのページの小節を置き換え）">このページを解析</button>
@@ -2088,6 +2089,6 @@ def main():
 if __name__ == "__main__":
     main()
 </script>
-  <script src="js/main.js?v=1793270215558"></script>
+  <script src="js/main.js?v=1793271053061"></script>
 </body>
 </html>

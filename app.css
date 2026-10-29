@@ -574,3 +574,10 @@ body.rtl dialog code, body.rtl dialog pre, body.rtl dialog input, body.rtl .su-c
 .staff-pair .staff-wrap { flex: 1 1 380px; max-width: 620px; margin: 4px 0; }
 .staff-pair .snip-row { flex: 0 1 auto; }
 .staff-edit { max-width: 600px; }
+
+/* 解析の欄をたたむ（楽譜の表示を広げる） */
+.ana-toggle { padding: 2px 7px; min-width: 0; font-size: 13px; line-height: 1.2; flex: 0 0 auto; }
+.analyze-bar.min { padding: 3px 8px; flex-wrap: nowrap; }
+.analyze-bar.min > :not(.ana-toggle):not(#aiStatus) { display: none !important; }
+.analyze-bar.min #aiStatus { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.analyze-bar.min #aiStatus br { display: none; }
