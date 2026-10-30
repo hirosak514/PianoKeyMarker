@@ -578,7 +578,7 @@ body.rtl dialog code, body.rtl dialog pre, body.rtl dialog input, body.rtl .su-c
 /* 解析の欄をたたむ（楽譜の表示を広げる） */
 .ana-toggle { padding: 2px 7px; min-width: 0; font-size: 13px; line-height: 1.2; flex: 0 0 auto; }
 .analyze-bar.min { padding: 3px 8px; flex-wrap: nowrap; }
-.analyze-bar.min > :not(.ana-toggle):not(#aiStatus) { display: none !important; }
+.analyze-bar.min > :not(.ana-toggle):not(#aiStatus):not(.play-mini) { display: none !important; }
 .analyze-bar.min #aiStatus { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .analyze-bar.min #aiStatus br { display: none; }
 
@@ -622,3 +622,14 @@ body.rtl dialog code, body.rtl dialog pre, body.rtl dialog input, body.rtl .su-c
 .edit-warn.blink { animation: editWarnBlink 0.9s ease-in-out 1; }
 @keyframes editWarnBlink { 0% { opacity: 1; } 35% { opacity: 0.1; } 70% { opacity: 1; } 100% { opacity: 1; } }
 .staff-undo { margin: 0 4px; vertical-align: middle; }
+
+/* 楽譜の画面の右下の再生ボタン（下の再生ボタンと同じ働き） */
+.play-mini { margin-left: auto; flex: 0 0 auto; width: 38px; height: 34px; border-radius: 8px; background: var(--accent); border-color: var(--accent); color: #fff; font-size: 15px; padding: 0; }
+.play-mini:disabled { opacity: .5; }
+/* 下の画面（再生・鍵盤）: ふだんは小さめにして編集の画面を広く、再生中だけ元の大きさに */
+body.dock-compact .keyboard { height: var(--kb-ch, 64px); }
+body.dock-compact .tl-loop-hint { display: none; }
+/* スマホ・タブレット: 再生中は下の画面だけを全画面で */
+body.dock-full .dock { position: fixed; inset: 0; z-index: 60; overflow: auto; display: flex; flex-direction: column; padding: 8px 10px max(10px, env(safe-area-inset-bottom)); }
+body.dock-full .dock > .keyboard { flex: 1 1 auto; height: auto; min-height: 120px; }
+body.dock-full .splitter { display: none; }
