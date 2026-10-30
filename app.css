@@ -590,3 +590,23 @@ body.rtl dialog code, body.rtl dialog pre, body.rtl dialog input, body.rtl .su-c
 .staff-edit .abcjs-notehead { cursor: ns-resize; }
 .staff-drag-tip { position: absolute; pointer-events: none; background: #1f2937; color: #fff; font-size: 12px; font-weight: 600; padding: 2px 7px; border-radius: 6px; white-space: nowrap; z-index: 5; }
 .d-undo-group button { min-width: 30px; }
+
+/* AIでの修正 */
+.ai-fix-row { align-items: center; gap: 6px; flex-wrap: wrap; }
+.ai-pick { font-size: 12px; padding: 3px 4px; border-radius: 6px; border: 1px solid #c9cfd8; background: #fff; max-width: 190px; }
+.ai-fix-btn { background: #eef2ff; border-color: #a5b4fc; color: #312e81; font-weight: 600; }
+.ai-key-dlg { max-width: 560px; }
+.ai-key-what { background: #f3f6fb; border: 1px solid #dbe3ef; border-radius: 8px; padding: 8px 12px; margin: 8px 0; font-size: 13px; }
+.ai-key-what p { margin: 4px 0 0; }
+.ai-key-steps { padding-left: 22px; margin: 10px 0; font-size: 14px; line-height: 1.55; }
+.ai-key-steps li { margin: 4px 0; }
+.big-btn { font-size: 15px; padding: 10px 16px; }
+.ai-key-input { display: flex; flex-direction: column; gap: 4px; margin: 10px 0 4px; font-weight: 600; font-size: 13px; }
+.ai-key-input input { font-size: 14px; padding: 8px; font-family: ui-monospace, Consolas, monospace; }
+.ai-fix-dlg { max-width: 640px; }
+.ai-fix-list { display: flex; flex-direction: column; gap: 8px; max-height: 55vh; overflow: auto; }
+.ai-fix-item { border: 1px solid #dbe3ef; border-radius: 8px; padding: 6px 10px; background: #fff; }
+.ai-fix-item.same { opacity: .7; }
+.ai-fix-head { display: flex; align-items: center; gap: 6px; }
+.ai-fix-item ul { margin: 4px 0 4px 18px; padding: 0; font-size: 13px; }
+.ai-fix-cmp { font-size: 12px; font-family: ui-monospace, Consolas, monospace; display: flex; flex-direction: column; gap: 4px; margin-top: 4px; word-break: break-word; }

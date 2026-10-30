@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chopin the Ⅲ</title>
-  <link rel="stylesheet" href="app.css?v=1793276063583">
+  <link rel="stylesheet" href="app.css?v=1793323949085">
 </head>
 <body>
   <header class="topbar">
@@ -175,6 +175,12 @@
       <div class="row" id="engineUrlRow"><span>補助プログラム</span><input id="optEngineUrl" size="26"> <button type="button" id="btnEngineTest" class="small">接続テスト</button></div>
       <p class="muted opt-note" id="browserEngineNote" hidden>「ブラウザ内解析」は、インストールや補助プログラムが不要な代わりに、初回に約160MBのモデルをダウンロードし、1ページの解析に数分かかります（拍子記号などは簡易推定です）。</p>
       <div class="row hint" id="engineStatus"></div>
+      <h3>🤖 AIでの修正</h3>
+      <p class="muted opt-note">小節を選んで「🤖 AIで修正」を押すと、その小節と前後1小節を、AIが元の楽譜の画像と見比べて直します。使うには、選んだAIの「APIキー」が必要です。</p>
+      <label class="row">使うAI <select id="optAi" class="ai-pick"></select></label>
+      <div class="row"><span>APIキー</span><input id="optAiKey" type="password" size="28" autocomplete="off" spellcheck="false" placeholder="APIキーを貼り付け"> <button type="button" id="btnAiKeyHelp" class="small">APIキーの取り方</button></div>
+      <div class="row"><span>モデル</span><select id="optAiModel"><option value="">自動（おすすめ）</option></select> <button type="button" id="btnAiModels" class="small">一覧を取得</button></div>
+      <p class="muted opt-note">APIキーはこの端末の中にだけ保存され、選んだAIの会社にだけ送られます。料金はAIの会社から、使った分だけ請求されます。</p>
       <h3>表示</h3>
       <label class="row">鍵盤の位置
         <select id="kbPosition">
@@ -206,6 +212,42 @@
       </div>
       <div class="dlg-actions">
         <button value="close" class="primary">閉じる</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlgAiKey" class="dlg ai-key-dlg">
+    <form method="dialog">
+      <h2>🔑 <span id="aiKeyTitle"></span></h2>
+      <p id="aiKeyIntro"></p>
+      <div class="ai-key-what">
+        <b>APIキーとは？</b>
+        <p>アプリがあなたの代わりにAIを使うための「合言葉」のような文字列です。AIの会社のホームページで無料で作れます。作ったキーをここに貼り付けると、このアプリからAIを使えるようになります。</p>
+      </div>
+      <ol id="aiKeySteps" class="ai-key-steps"></ol>
+      <div class="row"><button type="button" id="btnAiKeyOpen" class="primary big-btn"></button></div>
+      <p id="aiKeyCost" class="muted"></p>
+      <label class="ai-key-input"><span>ここにAPIキーを貼り付けてください</span>
+        <input id="aiKeyInput" type="password" autocomplete="off" spellcheck="false" placeholder="（例）sk-… / AIza…">
+      </label>
+      <label class="row chk"><input type="checkbox" id="aiKeyShow"> 貼り付けた文字を表示する</label>
+      <p id="aiKeyMsg" class="license-msg"></p>
+      <p class="muted">APIキーはこの端末の中にだけ保存されます。他の人には教えないでください。</p>
+      <div class="dlg-actions">
+        <button value="cancel" type="submit">あとで</button>
+        <button type="button" id="btnAiKeySave" class="primary">保存して続ける</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlgAiFix" class="dlg ai-fix-dlg">
+    <form method="dialog">
+      <h2>🤖 AIの修正案</h2>
+      <p id="aiFixIntro" class="muted"></p>
+      <div id="aiFixList" class="ai-fix-list"></div>
+      <div class="dlg-actions">
+        <button value="cancel" type="submit">直さない</button>
+        <button type="button" id="btnAiFixApply" class="primary">チェックした小節を直す</button>
       </div>
     </form>
   </dialog>
@@ -2091,6 +2133,6 @@ def main():
 if __name__ == "__main__":
     main()
 </script>
-  <script src="js/main.js?v=1793276063583"></script>
+  <script src="js/main.js?v=1793323949085"></script>
 </body>
 </html>
