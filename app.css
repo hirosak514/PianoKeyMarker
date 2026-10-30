@@ -614,3 +614,10 @@ body.rtl dialog code, body.rtl dialog pre, body.rtl dialog input, body.rtl .su-c
 .d-play.on { background: #1e7b4f; color: #fff; border-color: #1e7b4f; }
 .d-play-lbl { font-size: 12px; }
 @media (max-width: 640px) { .d-play-lbl { display: none; } }
+
+/* 「音符を編集」がOFFのときの知らせ（赤字・1回点滅） */
+.edit-warn { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; color: #c62828; font-weight: 700; font-size: 13px; padding: 4px 8px; margin: 2px 0 4px; border: 1px solid #f3b4b4; background: #fff3f3; border-radius: 6px; }
+.edit-warn[hidden] { display: none; }
+.edit-warn button { font-weight: 600; }
+.edit-warn.blink { animation: editWarnBlink 0.9s ease-in-out 1; }
+@keyframes editWarnBlink { 0% { opacity: 1; } 35% { opacity: 0.1; } 70% { opacity: 1; } 100% { opacity: 1; } }
