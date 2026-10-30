@@ -621,3 +621,4 @@ body.rtl dialog code, body.rtl dialog pre, body.rtl dialog input, body.rtl .su-c
 .edit-warn button { font-weight: 600; }
 .edit-warn.blink { animation: editWarnBlink 0.9s ease-in-out 1; }
 @keyframes editWarnBlink { 0% { opacity: 1; } 35% { opacity: 0.1; } 70% { opacity: 1; } 100% { opacity: 1; } }
+.staff-undo { margin: 0 4px; vertical-align: middle; }
