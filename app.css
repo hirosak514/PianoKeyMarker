@@ -657,3 +657,11 @@ body.dock-compact .keyboard { height: var(--kb-ch, 48px); }
   .topbar button, .topbar .btn { padding: 4px 8px; font-size: 12px; }
   .topbar .lang-quick { font-size: 11px; }
 }
+/* 小節の複数選択 */
+.m-box.msel { border: 2px solid #2f6fde; background: rgba(47, 111, 222, .12); }
+.m-box.msel .m-box-n { opacity: 1; }
+.msel-row { align-items: center; gap: 5px; flex-wrap: wrap; font-size: 12px; }
+.msel-row .num { width: 52px; }
+.msel-row.many { background: #eef3ff; border-radius: 6px; padding: 3px 6px; }
+.msel-label { font-weight: 700; }
+button.danger { color: #b3261e; }
