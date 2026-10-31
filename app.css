@@ -624,7 +624,8 @@ body.rtl dialog code, body.rtl dialog pre, body.rtl dialog input, body.rtl .su-c
 .staff-undo { margin: 0 4px; vertical-align: middle; }
 
 /* 楽譜の画面の右下の再生ボタン（下の再生ボタンと同じ働き） */
-.play-mini { margin-left: auto; flex: 0 0 auto; width: 38px; height: 34px; border-radius: 8px; background: var(--accent); border-color: var(--accent); color: #fff; font-size: 15px; padding: 0; }
+.play-mini { margin-left: auto; flex: 0 0 auto; width: 38px; height: 34px; border-radius: 8px; background: var(--accent); border-color: var(--accent); color: #fff; padding: 0; display: inline-flex; align-items: center; justify-content: center; line-height: 0; }
+.play-mini svg { display: block; }
 .play-mini:disabled { opacity: .5; }
 /* 下の画面（再生・鍵盤）: ふだんは小さめにして編集の画面を広く、再生中だけ元の大きさに */
 body.dock-compact .keyboard { height: var(--kb-ch, 64px); }
