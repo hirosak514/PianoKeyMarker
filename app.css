@@ -633,3 +633,26 @@ body.dock-compact .tl-loop-hint { display: none; }
 body.dock-full .dock { position: fixed; inset: 0; z-index: 60; overflow: auto; display: flex; flex-direction: column; padding: 8px 10px max(10px, env(safe-area-inset-bottom)); }
 body.dock-full .dock > .keyboard { flex: 1 1 auto; height: auto; min-height: 120px; }
 body.dock-full .splitter { display: none; }
+
+/* ふだん（止まっているとき）の下の画面は、文字と余白も少し詰める */
+body.dock-compact .dock { padding-top: 4px; padding-bottom: 6px; font-size: 12px; }
+body.dock-compact .dock button, body.dock-compact .dock select, body.dock-compact .dock input { font-size: 12px; }
+body.dock-compact .transport { row-gap: 4px; }
+/* ふだんの下の画面をさらに詰める（編集の画面全体が見えるように）。再生中は元の大きさに戻る */
+body.dock-compact .timeline { margin: 0 0 4px; }
+body.dock-compact .tl-seek { height: 18px; }
+body.dock-compact .tl-tick { top: 9px; }
+body.dock-compact .tl-tick.major { top: 5px; }
+body.dock-compact .tl-tick span { top: -6px; font-size: 8px; }
+body.dock-compact .tl-loop { height: 8px; }
+body.dock-compact .transport { gap: 10px; padding-bottom: 2px; }
+body.dock-compact .kb-bar { padding: 2px 0 3px; gap: 10px; font-size: 11px; }
+body.dock-compact .dock button, body.dock-compact .dock .btn { padding-top: 2px; padding-bottom: 2px; }
+body.dock-compact .dock select, body.dock-compact .dock input:not([type=checkbox]):not([type=range]) { padding-top: 1px; padding-bottom: 1px; }
+body.dock-compact .keyboard { height: var(--kb-ch, 48px); }
+/* 上のバー: 幅が足りない画面では文字と余白を小さくして1段に収める */
+@media (max-width: 1440px) and (min-width: 900px) {
+  .topbar { padding: 5px 10px; gap: 4px; }
+  .topbar button, .topbar .btn { padding: 4px 8px; font-size: 12px; }
+  .topbar .lang-quick { font-size: 11px; }
+}
