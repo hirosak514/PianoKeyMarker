@@ -30,7 +30,7 @@ import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
-VERSION = "2.8"
+VERSION = "2.9"
 LOCK = threading.Lock()          # 読み取りは1枚ずつ（どのエンジンもメモリを多く使うため）
 LAST_ACTIVITY = [0.0]           # 最後にアプリから接続があった時刻（--idle-exit 用）
 MAX_BYTES = 30 * 1024 * 1024
@@ -717,6 +717,21 @@ def _idle_watch(srv, limit):
 
 
 
+
+DEFAULT_PORT = 8765
+SPARE_PORTS = [18765, 28765, 38765, 48765]  # アプリ（src/js/engine.js）も同じ順に探す
+
+
+def port_is_our_helper(port):
+    """その番号で、この補助プログラムがすでに動いて応答しているか"""
+    try:
+        import urllib.request
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=2) as r:
+            j = json.loads(r.read().decode("utf-8", "replace"))
+            return isinstance(j, dict) and "engines" in j
+    except Exception:
+        return False
+
 def on_chromeos_linux():
     """Chromebook の Linux 開発環境（Crostini）の中で動いているか"""
     try:
@@ -760,11 +775,26 @@ def main():
         # （penguin.linux.test などで）つなげるように、すべての受け口で待ち受ける。
         # Linux 開発環境は ChromeOS の内側にあり、家のネットワークなど外からは直接つながらない。
         host = "0.0.0.0" if on_chromeos_linux() else "127.0.0.1"
-        srv = ThreadingHTTPServer((host, args.port), Handler)
-    except OSError:
-        # すでに補助プログラムが動いている（同じ番号を使っている）: そちらを使うので、ここは静かに終わる
-        say("The helper is already running. You can close this window. / 補助プログラムはすでに起動しています。このウィンドウは閉じてかまいません。")
-        return
+        srv = None
+        # 8765 番が使えないときは、予備の番号を順に試す（アプリも同じ順に探す）。
+        # Windows は Hyper-V・WSL・Docker などのために番号の範囲を予約することがあり、
+        # そのときは「使用中」と同じようなエラーになるが、補助プログラムが動いているわけではない。
+        ports = [args.port] + ([p for p in SPARE_PORTS if p != args.port] if args.port == DEFAULT_PORT else [])
+        for port in ports:
+            try:
+                srv = ThreadingHTTPServer((host, port), Handler)
+                break
+            except OSError as e:
+                if port_is_our_helper(port):
+                    say("The helper is already running. You can close this window. / 補助プログラムはすでに起動しています。このウィンドウは閉じてかまいません。")
+                    return
+                say(f"Port {port} cannot be used ({e}). Trying another port... / {port}番は使えないため、別の番号を試します…")
+        if srv is None:
+            say("No usable port was found. / 使える番号が見つかりませんでした。")
+            raise SystemExit(1)
+        args.port = srv.server_address[1]
+    except SystemExit:
+        raise
     if args.idle_exit > 0:
         LAST_ACTIVITY[0] = time.time()
         threading.Thread(target=_idle_watch, args=(srv, args.idle_exit), daemon=True).start()

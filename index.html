@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chopin the Ⅲ</title>
-  <link rel="stylesheet" href="app.css?v=1793502907037">
+  <link rel="stylesheet" href="app.css?v=1793528942718">
 </head>
 <body>
   <header class="topbar">
@@ -563,7 +563,7 @@ import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
-VERSION = "2.8"
+VERSION = "2.9"
 LOCK = threading.Lock()          # 読み取りは1枚ずつ（どのエンジンもメモリを多く使うため）
 LAST_ACTIVITY = [0.0]           # 最後にアプリから接続があった時刻（--idle-exit 用）
 MAX_BYTES = 30 * 1024 * 1024
@@ -1250,6 +1250,21 @@ def _idle_watch(srv, limit):
 
 
 
+
+DEFAULT_PORT = 8765
+SPARE_PORTS = [18765, 28765, 38765, 48765]  # アプリ（src/js/engine.js）も同じ順に探す
+
+
+def port_is_our_helper(port):
+    """その番号で、この補助プログラムがすでに動いて応答しているか"""
+    try:
+        import urllib.request
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=2) as r:
+            j = json.loads(r.read().decode("utf-8", "replace"))
+            return isinstance(j, dict) and "engines" in j
+    except Exception:
+        return False
+
 def on_chromeos_linux():
     """Chromebook の Linux 開発環境（Crostini）の中で動いているか"""
     try:
@@ -1293,11 +1308,26 @@ def main():
         # （penguin.linux.test などで）つなげるように、すべての受け口で待ち受ける。
         # Linux 開発環境は ChromeOS の内側にあり、家のネットワークなど外からは直接つながらない。
         host = "0.0.0.0" if on_chromeos_linux() else "127.0.0.1"
-        srv = ThreadingHTTPServer((host, args.port), Handler)
-    except OSError:
-        # すでに補助プログラムが動いている（同じ番号を使っている）: そちらを使うので、ここは静かに終わる
-        say("The helper is already running. You can close this window. / 補助プログラムはすでに起動しています。このウィンドウは閉じてかまいません。")
-        return
+        srv = None
+        # 8765 番が使えないときは、予備の番号を順に試す（アプリも同じ順に探す）。
+        # Windows は Hyper-V・WSL・Docker などのために番号の範囲を予約することがあり、
+        # そのときは「使用中」と同じようなエラーになるが、補助プログラムが動いているわけではない。
+        ports = [args.port] + ([p for p in SPARE_PORTS if p != args.port] if args.port == DEFAULT_PORT else [])
+        for port in ports:
+            try:
+                srv = ThreadingHTTPServer((host, port), Handler)
+                break
+            except OSError as e:
+                if port_is_our_helper(port):
+                    say("The helper is already running. You can close this window. / 補助プログラムはすでに起動しています。このウィンドウは閉じてかまいません。")
+                    return
+                say(f"Port {port} cannot be used ({e}). Trying another port... / {port}番は使えないため、別の番号を試します…")
+        if srv is None:
+            say("No usable port was found. / 使える番号が見つかりませんでした。")
+            raise SystemExit(1)
+        args.port = srv.server_address[1]
+    except SystemExit:
+        raise
     if args.idle_exit > 0:
         LAST_ACTIVITY[0] = time.time()
         threading.Thread(target=_idle_watch, args=(srv, args.idle_exit), daemon=True).start()
@@ -1317,43 +1347,39 @@ if __name__ == "__main__":
   <script type="text/plain" id="helper-launcher">@echo off
 chcp 65001 >nul
 setlocal
-title Chopin the Ⅲ 補助プログラム
+title Chopin the III Helper
 set "PKM=%LOCALAPPDATA%\PianoKeyMarker"
 set "PKM_SELF=%~f0"
 if not exist "%PKM%" mkdir "%PKM%"
 set "UV=%PKM%\uv.exe"
-rem Chopin the Ⅲの画面から自動で起動されたときは --protocol が付く（ウィンドウは最小化で開く）
 set "PKM_PROTO="
 if /i "%~1"=="--protocol" set "PKM_PROTO=1"
 
 echo.
 echo  ==============================================
-echo    Chopin the III Helper / Chopin the Ⅲ 補助プログラム
+call :ja "   Chopin the III Helper / Chopin the \u2162 \u88dc\u52a9\u30d7\u30ed\u30b0\u30e9\u30e0"
 echo  ==============================================
 echo   Keep this window open while reading sheet music (minimizing is fine).
-echo   このウィンドウは、楽譜を読み取る間は開いたままにしてください。
-echo   （最小化しても大丈夫です。閉じると読み取りができなくなります）
+call :ja "  \u3053\u306e\u30a6\u30a3\u30f3\u30c9\u30a6\u306f\u3001\u697d\u8b5c\u3092\u8aad\u307f\u53d6\u308b\u9593\u306f\u958b\u3044\u305f\u307e\u307e\u306b\u3057\u3066\u304f\u3060\u3055\u3044\u3002"
+call :ja "  \uff08\u6700\u5c0f\u5316\u3057\u3066\u3082\u5927\u4e08\u592b\u3067\u3059\u3002\u9589\u3058\u308b\u3068\u8aad\u307f\u53d6\u308a\u304c\u3067\u304d\u306a\u304f\u306a\u308a\u307e\u3059\uff09"
 echo.
 
 if exist "%UV%" goto haveuv
 echo  [Setup] Downloading required tools (first time only, about a minute)...
-echo  [準備] 必要な道具をダウンロードしています（初回だけ・1分ほど）...
+call :ja " [\u6e96\u5099] \u5fc5\u8981\u306a\u9053\u5177\u3092\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9\u3057\u3066\u3044\u307e\u3059\uff08\u521d\u56de\u3060\u3051\u30fb1\u5206\u307b\u3069\uff09..."
 powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; $env:UV_INSTALL_DIR=(Join-Path $env:LOCALAPPDATA 'PianoKeyMarker'); $env:UV_NO_MODIFY_PATH='1'; irm https://astral.sh/uv/install.ps1 | iex"
 if exist "%PKM%\bin\uv.exe" copy /y "%PKM%\bin\uv.exe" "%UV%" >nul
 if exist "%UV%" goto haveuv
-echo  [Setup] Trying another download method... / 別の方法でダウンロードしています...
+call :ja " [Setup] Trying another download method... / \u5225\u306e\u65b9\u6cd5\u3067\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9\u3057\u3066\u3044\u307e\u3059..."
 powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; $z=Join-Path $env:TEMP 'pkm-uv.zip'; $d=Join-Path $env:TEMP 'pkm-uv'; Invoke-WebRequest -UseBasicParsing 'https://github.com/astral-sh/uv/releases/latest/download/uv-x86_64-pc-windows-msvc.zip' -OutFile $z; Expand-Archive -Force $z $d; Copy-Item (Get-ChildItem $d -Recurse -Filter uv.exe | Select-Object -First 1).FullName (Join-Path $env:LOCALAPPDATA 'PianoKeyMarker\uv.exe') -Force"
 if exist "%UV%" goto haveuv
 goto fail
 
 :haveuv
-rem このファイルの末尾に埋め込んだ補助プログラム本体を取り出す（毎回最新のものに置き換える）
 powershell -NoProfile -ExecutionPolicy Bypass -Command "$t=[IO.File]::ReadAllText($env:PKM_SELF,[Text.Encoding]::UTF8); $m='###'+' PKM-HELPER-PY BEGIN '+'###'; $i=$t.LastIndexOf($m); if($i -lt 0){exit 3}; $s=$t.IndexOf([char]10,$i)+1; [IO.File]::WriteAllText((Join-Path $env:LOCALAPPDATA 'PianoKeyMarker\pkm_omr_helper.py'),$t.Substring($s),(New-Object Text.UTF8Encoding $false))"
 if errorlevel 1 goto fail
 if not exist "%PKM%\pkm_omr_helper.py" goto fail
 
-rem このファイル自体を決まった場所（%LOCALAPPDATA%\PianoKeyMarker\helper.bat）に保存し、
-rem Chopin the Ⅲの画面から自動で起動できるように「起動用リンク」を登録する（管理者権限は不要）
 if /i not "%~f0"=="%PKM%\helper.bat" copy /y "%~f0" "%PKM%\helper.bat" >nul
 reg add "HKCU\Software\Classes\pianokeymarker-helper" /ve /d "URL:PianoKeyMarker Helper" /f >nul
 reg add "HKCU\Software\Classes\pianokeymarker-helper" /v "URL Protocol" /d "" /f >nul
@@ -1361,17 +1387,15 @@ reg add "HKCU\Software\Classes\pianokeymarker-helper\shell\open\command" /ve /d 
 
 set "PATH=%PKM%;%PATH%"
 echo  Starting the helper (the first time, preparing Python takes 1-3 minutes)...
-echo  補助プログラムを起動します（初回は Python の準備に1〜3分かかります）...
+call :ja " \u88dc\u52a9\u30d7\u30ed\u30b0\u30e9\u30e0\u3092\u8d77\u52d5\u3057\u307e\u3059\uff08\u521d\u56de\u306f Python \u306e\u6e96\u5099\u306b1\u301c3\u5206\u304b\u304b\u308a\u307e\u3059\uff09..."
 echo.
-rem 古い補助プログラムが動いていれば終了させる（新しいものに入れ替えるため。自分自身の PowerShell は除く）
 powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-CimInstance Win32_Process | Where-Object { $_.ProcessId -ne $PID -and $_.CommandLine -like '*pkm_omr_helper.py*' } | ForEach-Object { Invoke-CimMethod -InputObject $_ -MethodName Terminate | Out-Null }" >nul 2>&1
 timeout /t 1 /nobreak >nul
-rem Chopin the Ⅲの画面（アプリ・ブラウザ）を閉じて3分ほど接続がなければ、自動で終了する
 "%UV%" run --no-project --python 3.12 "%PKM%\pkm_omr_helper.py" --no-setup --idle-exit 180
 if errorlevel 1 goto crashed
 echo.
 echo  The helper has stopped. Next time it starts automatically when you press "Analyze" in Chopin the III.
-echo  補助プログラムを終了しました。次回からは、Chopin the Ⅲで「解析する」を押すと自動で起動します。
+call :ja " \u88dc\u52a9\u30d7\u30ed\u30b0\u30e9\u30e0\u3092\u7d42\u4e86\u3057\u307e\u3057\u305f\u3002\u6b21\u56de\u304b\u3089\u306f\u3001Chopin the \u2162\u3067\u300c\u89e3\u6790\u3059\u308b\u300d\u3092\u62bc\u3059\u3068\u81ea\u52d5\u3067\u8d77\u52d5\u3057\u307e\u3059\u3002"
 if defined PKM_PROTO exit /b
 timeout /t 8 >nul
 exit /b
@@ -1379,7 +1403,7 @@ exit /b
 :crashed
 echo.
 echo  The helper stopped. Please check the messages above.
-echo  補助プログラムが止まりました。上に表示された内容を確認してください。
+call :ja " \u88dc\u52a9\u30d7\u30ed\u30b0\u30e9\u30e0\u304c\u6b62\u307e\u308a\u307e\u3057\u305f\u3002\u4e0a\u306b\u8868\u793a\u3055\u308c\u305f\u5185\u5bb9\u3092\u78ba\u8a8d\u3057\u3066\u304f\u3060\u3055\u3044\u3002"
 pause
 exit /b
 
@@ -1388,13 +1412,16 @@ echo.
 echo  Setup didn't succeed. Check your internet connection and open this file again.
 echo  If it keeps failing, please use the Windows app (exe), which needs no setup.
 echo.
-echo  準備がうまくいきませんでした。
-echo  インターネットにつながっているか確認して、もう一度このファイルを開いてください。
-echo  何度やってもうまくいかない場合は、Windowsアプリ版（exe）をお使いください（準備は不要です）。
+call :ja " \u6e96\u5099\u304c\u3046\u307e\u304f\u3044\u304d\u307e\u305b\u3093\u3067\u3057\u305f\u3002"
+call :ja " \u30a4\u30f3\u30bf\u30fc\u30cd\u30c3\u30c8\u306b\u3064\u306a\u304c\u3063\u3066\u3044\u308b\u304b\u78ba\u8a8d\u3057\u3066\u3001\u3082\u3046\u4e00\u5ea6\u3053\u306e\u30d5\u30a1\u30a4\u30eb\u3092\u958b\u3044\u3066\u304f\u3060\u3055\u3044\u3002"
+call :ja " \u4f55\u5ea6\u3084\u3063\u3066\u3082\u3046\u307e\u304f\u3044\u304b\u306a\u3044\u5834\u5408\u306f\u3001Windows\u30a2\u30d7\u30ea\u7248\uff08exe\uff09\u3092\u304a\u4f7f\u3044\u304f\u3060\u3055\u3044\uff08\u6e96\u5099\u306f\u4e0d\u8981\u3067\u3059\uff09\u3002"
 echo.
 pause
 exit /b
 
+:ja
+powershell -NoProfile -ExecutionPolicy Bypass -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; [Console]::WriteLine([regex]::Unescape('%~1'))"
+exit /b
 ### PKM-HELPER-PY BEGIN ###
 #!/usr/bin/env python3
 """
@@ -1428,7 +1455,7 @@ import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
-VERSION = "2.8"
+VERSION = "2.9"
 LOCK = threading.Lock()          # 読み取りは1枚ずつ（どのエンジンもメモリを多く使うため）
 LAST_ACTIVITY = [0.0]           # 最後にアプリから接続があった時刻（--idle-exit 用）
 MAX_BYTES = 30 * 1024 * 1024
@@ -2115,6 +2142,21 @@ def _idle_watch(srv, limit):
 
 
 
+
+DEFAULT_PORT = 8765
+SPARE_PORTS = [18765, 28765, 38765, 48765]  # アプリ（src/js/engine.js）も同じ順に探す
+
+
+def port_is_our_helper(port):
+    """その番号で、この補助プログラムがすでに動いて応答しているか"""
+    try:
+        import urllib.request
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=2) as r:
+            j = json.loads(r.read().decode("utf-8", "replace"))
+            return isinstance(j, dict) and "engines" in j
+    except Exception:
+        return False
+
 def on_chromeos_linux():
     """Chromebook の Linux 開発環境（Crostini）の中で動いているか"""
     try:
@@ -2158,11 +2200,26 @@ def main():
         # （penguin.linux.test などで）つなげるように、すべての受け口で待ち受ける。
         # Linux 開発環境は ChromeOS の内側にあり、家のネットワークなど外からは直接つながらない。
         host = "0.0.0.0" if on_chromeos_linux() else "127.0.0.1"
-        srv = ThreadingHTTPServer((host, args.port), Handler)
-    except OSError:
-        # すでに補助プログラムが動いている（同じ番号を使っている）: そちらを使うので、ここは静かに終わる
-        say("The helper is already running. You can close this window. / 補助プログラムはすでに起動しています。このウィンドウは閉じてかまいません。")
-        return
+        srv = None
+        # 8765 番が使えないときは、予備の番号を順に試す（アプリも同じ順に探す）。
+        # Windows は Hyper-V・WSL・Docker などのために番号の範囲を予約することがあり、
+        # そのときは「使用中」と同じようなエラーになるが、補助プログラムが動いているわけではない。
+        ports = [args.port] + ([p for p in SPARE_PORTS if p != args.port] if args.port == DEFAULT_PORT else [])
+        for port in ports:
+            try:
+                srv = ThreadingHTTPServer((host, port), Handler)
+                break
+            except OSError as e:
+                if port_is_our_helper(port):
+                    say("The helper is already running. You can close this window. / 補助プログラムはすでに起動しています。このウィンドウは閉じてかまいません。")
+                    return
+                say(f"Port {port} cannot be used ({e}). Trying another port... / {port}番は使えないため、別の番号を試します…")
+        if srv is None:
+            say("No usable port was found. / 使える番号が見つかりませんでした。")
+            raise SystemExit(1)
+        args.port = srv.server_address[1]
+    except SystemExit:
+        raise
     if args.idle_exit > 0:
         LAST_ACTIVITY[0] = time.time()
         threading.Thread(target=_idle_watch, args=(srv, args.idle_exit), daemon=True).start()
@@ -2179,6 +2236,6 @@ def main():
 if __name__ == "__main__":
     main()
 </script>
-  <script src="js/main.js?v=1793502907037"></script>
+  <script src="js/main.js?v=1793528942718"></script>
 </body>
 </html>
