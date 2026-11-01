@@ -112,7 +112,7 @@ import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
-VERSION = "2.7"
+VERSION = "2.8"
 LOCK = threading.Lock()          # 読み取りは1枚ずつ（どのエンジンもメモリを多く使うため）
 LAST_ACTIVITY = [0.0]           # 最後にアプリから接続があった時刻（--idle-exit 用）
 MAX_BYTES = 30 * 1024 * 1024
@@ -798,6 +798,17 @@ def _idle_watch(srv, limit):
             return
 
 
+
+def on_chromeos_linux():
+    """Chromebook の Linux 開発環境（Crostini）の中で動いているか"""
+    try:
+        if os.path.exists("/dev/.cros_milestone") or os.path.exists("/opt/google/cros-containers"):
+            return True
+        import socket
+        return socket.gethostname() == "penguin"
+    except Exception:
+        return False
+
 def main():
     global AUDIVERIS_OVERRIDE
     _console_utf8()
@@ -827,7 +838,11 @@ def main():
     if args.install_homr:
         threading.Thread(target=install_homr, daemon=True).start()
     try:
-        srv = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
+        # Chromebook の「Linux 開発環境」の中で動いているときは、ChromeOS 側の Chrome から
+        # （penguin.linux.test などで）つなげるように、すべての受け口で待ち受ける。
+        # Linux 開発環境は ChromeOS の内側にあり、家のネットワークなど外からは直接つながらない。
+        host = "0.0.0.0" if on_chromeos_linux() else "127.0.0.1"
+        srv = ThreadingHTTPServer((host, args.port), Handler)
     except OSError:
         # すでに補助プログラムが動いている（同じ番号を使っている）: そちらを使うので、ここは静かに終わる
         say("The helper is already running. You can close this window. / 補助プログラムはすでに起動しています。このウィンドウは閉じてかまいません。")
