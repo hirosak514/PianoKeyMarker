@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chopin the Ⅲ</title>
-  <link rel="stylesheet" href="app.css?v=1793498612497">
+  <link rel="stylesheet" href="app.css?v=1793499531752">
 </head>
 <body>
   <header class="topbar">
@@ -250,6 +250,20 @@
         <button value="cancel" type="submit">直さない</button>
         <button type="button" id="btnAiFixApply" class="primary">チェックした小節を直す</button>
       </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlgOverflow" class="dlg ask ovf-dlg">
+    <form method="dialog">
+      <h2>⚠ 小節をはみ出しました</h2>
+      <p id="ovfText"></p>
+      <div class="ovf-choices">
+        <button value="cut"><b>はみ出した音を消す</b><span>小節線で切ります。小節線をまたぐ音は小節の終わりまでの長さにします</span></button>
+        <button value="tie"><b>タイで次の小節へ</b><span>小節線をまたぐ音はタイでつなぎ、小節線より後ろの音は次の小節の頭へ送ります</span></button>
+        <button value="len"><b>この小節を長くする</b><span>拍子が変わる小節などで、小節の長さを音に合わせます</span></button>
+        <button value="keep"><b>そのままにする</b><span>あとで直します（「要確認」に残ります）</span></button>
+      </div>
+      <p class="muted">どれを選んでも、↶ で変更の前に戻せます。</p>
     </form>
   </dialog>
 
@@ -2134,6 +2148,6 @@ def main():
 if __name__ == "__main__":
     main()
 </script>
-  <script src="js/main.js?v=1793498612497"></script>
+  <script src="js/main.js?v=1793499531752"></script>
 </body>
 </html>
