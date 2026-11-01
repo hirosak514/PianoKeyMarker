@@ -678,3 +678,5 @@ button.danger { color: #b3261e; }
 .acc-group .hint { margin-right: 2px; }
 .acc-btn { min-width: 28px; font-size: 15px; line-height: 1; }
 .acc-btn.on { background: var(--accent, #2b6cb0); color: #fff; border-color: transparent; }
+.key-mode { display: inline-flex; align-items: center; gap: 2px; }
+.key-mode button.on { background: var(--accent); color: #fff; border-color: var(--accent); }
