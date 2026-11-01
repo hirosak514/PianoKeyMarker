@@ -665,3 +665,4 @@ body.dock-compact .keyboard { height: var(--kb-ch, 48px); }
 .msel-row.many { background: #eef3ff; border-radius: 6px; padding: 3px 6px; }
 .msel-label { font-weight: 700; }
 button.danger { color: #b3261e; }
+.rest-ins { display: inline-flex; align-items: center; gap: 4px; } .rest-len { font-size: 12px; padding: 2px 4px; border-radius: 6px; border: 1px solid #c9cfd8; }
