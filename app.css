@@ -686,3 +686,17 @@ button.danger { color: #b3261e; }
 .staff-pair .staff-wrap.zoomed { max-width: none; flex-basis: 100%; }
 .staff-zoom { display: inline-flex; align-items: center; margin-left: 6px; }
 .staff-zoom .zoom-val { min-width: 46px; font-variant-numeric: tabular-nums; }
+
+/* 上のバーの「📚 ライブラリ ▾」「📁 ファイル ▾」メニュー */
+.menu-wrap { position: relative; display: inline-flex; }
+.menu-btn.open { background: #3a4357; }
+.menu { position: absolute; top: calc(100% + 4px); left: 0; z-index: 200; min-width: 250px; display: flex; flex-direction: column;
+  background: #fff; color: #1d2433; border: 1px solid #c9ced8; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.22); padding: 5px; }
+.menu[hidden] { display: none; }
+.menu > button, .menu > label.btn { display: block; width: 100%; text-align: left; background: transparent; color: inherit; border: 0; border-radius: 5px;
+  padding: 7px 10px !important; font-size: 13px !important; white-space: nowrap; cursor: pointer; }
+.menu > button:hover, .menu > label.btn:hover, .menu > button:focus-visible { background: #eef2f8; }
+.menu > button:disabled { opacity: .45; cursor: default; }
+.menu hr { border: 0; border-top: 1px solid #e3e6ec; margin: 4px 2px; }
+.btn-group.file-menus > .menu-wrap > .menu-btn { border-radius: 0; }
+.lib-where { margin: -4px 0 8px; font-size: 12px; cursor: help; }

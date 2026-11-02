@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chopin the Ⅲ</title>
-  <link rel="stylesheet" href="app.css?v=1793616047990">
+  <link rel="stylesheet" href="app.css?v=1793618784647">
 </head>
 <body>
   <header class="topbar">
@@ -15,17 +15,29 @@
       <button id="btnUndo" title="元に戻す (Ctrl+Z)">↶</button>
       <button id="btnRedo" title="やり直す (Ctrl+Shift+Z)">↷</button>
     </div>
-    <div class="btn-group">
-      <button id="btnNew">新規</button>
-      <button id="btnLibrary">ライブラリ</button>
-      <button id="btnSave" class="accent">保存</button>
-      <button id="btnSaveAs">別名で保存</button>
-    </div>
-    <div class="btn-group">
-      <button id="btnExport" title="JSONファイルとして書き出し（このアプリで読み込み直せる形式）">書き出し</button>
-      <button id="btnExportMidi" title="MIDIファイル（.mid）として書き出し（他の楽譜・演奏ソフトで開けます）">MIDI出力</button>
-      <button id="btnExportXml" title="MusicXMLファイル（.musicxml）として書き出し（MuseScore・Finale・Sibelius などの楽譜ソフトで開いて、楽譜として表示・編集できます）">MusicXML出力</button>
-      <label class="btn" title="楽譜ファイルを読み込み（MusicXML・MXL・MIDI・PDF・このアプリで書き出したJSON）">読み込み<input type="file" id="importFile" accept=".json,.musicxml,.xml,.mxl,.mid,.midi,.pdf,application/pdf" hidden></label>
+    <div class="btn-group file-menus">
+      <button id="btnNew" title="新しい楽譜を作ります（いまの楽譜は、ライブラリに保存していなければ下書きとしてだけ残ります）">新規</button>
+      <div class="menu-wrap">
+        <button id="btnLibMenu" class="menu-btn" aria-haspopup="true" aria-expanded="false" title="ライブラリ＝このアプリの中に楽譜をしまっておく場所です。パソコンのファイルにはなりません（この端末・このブラウザの中だけに保存されます）">📚 ライブラリ ▾</button>
+        <div id="menuLib" class="menu" role="menu" hidden>
+          <button id="btnLibrary" role="menuitem" title="ライブラリに保存した楽譜の一覧を開きます。開く・削除ができます">曲の一覧を開く</button>
+          <button id="btnSaveMenu" role="menuitem" title="いまの楽譜をライブラリ（このアプリの中）に保存します。前に保存した曲なら上書きします">ライブラリに保存</button>
+          <button id="btnSaveAs" role="menuitem" title="名前を付けて、別の曲としてライブラリ（このアプリの中）に保存します">ライブラリに別名で保存</button>
+        </div>
+      </div>
+      <div class="menu-wrap">
+        <button id="btnFileMenu" class="menu-btn" aria-haspopup="true" aria-expanded="false" title="パソコン（スマホ）のファイルとして保存したり、ファイルから開いたりします。ほかのアプリや別の端末に持っていけます">📁 ファイル ▾</button>
+        <div id="menuFile" class="menu" role="menu" hidden>
+          <label class="btn" role="menuitem" title="楽譜ファイルを開きます（このアプリで保存したJSON・MusicXML・MXL・MIDI・PDF）">ファイルを開く<input type="file" id="importFile" accept=".json,.musicxml,.xml,.mxl,.mid,.midi,.pdf,application/pdf" hidden></label>
+          <button id="btnExport" role="menuitem" title="いまの1曲を、このアプリで開き直せるファイル（.json）としてパソコンに保存します。楽譜の画像も入ります">この曲をファイルに保存（.json）</button>
+          <button id="btnExportMidi" role="menuitem" title="MIDIファイル（.mid）として書き出します（他の楽譜・演奏ソフトで開けます）">MIDIファイルに書き出す</button>
+          <button id="btnExportXml" role="menuitem" title="MusicXMLファイル（.musicxml）として書き出します（MuseScore・Finale・Sibelius などの楽譜ソフトで開いて、楽譜として表示・編集できます）">MusicXMLファイルに書き出す</button>
+          <hr>
+          <button id="btnBackup" role="menuitem" title="ライブラリの全曲と設定を、1つのファイルにまとめてパソコンに保存します。版の上げ替え・パソコンの買い替えの前にどうぞ（AIのAPIキーは入りません）">ライブラリ全体をバックアップ</button>
+          <label class="btn" role="menuitem" title="「ライブラリ全体をバックアップ」で作ったファイルから、全曲をライブラリに戻します">バックアップから戻す<input type="file" id="restoreFile" accept=".json,application/json" hidden></label>
+        </div>
+      </div>
+      <button id="btnSave" class="accent" title="いまの楽譜をライブラリ（このアプリの中）に保存します（「📚 ライブラリ ▾ → ライブラリに保存」と同じ）">保存</button>
     </div>
     <button id="btnTour" title="操作をガイドツアーで順番に説明します">🧭 ガイドツアー</button>
     <button id="btnHelp" title="使い方・準備">？ 使い方</button>
@@ -198,7 +210,7 @@
       </label>
       <div id="exportDirSection" hidden>
         <h3>📁 書き出し先のフォルダ</h3>
-        <p class="muted opt-note">「書き出し」「MIDI出力」「MusicXML出力」で作るファイルを保存するフォルダです。</p>
+        <p class="muted opt-note">「📁 ファイル ▾」の「この曲をファイルに保存」「MIDI・MusicXMLファイルに書き出す」「ライブラリ全体をバックアップ」で作るファイルを保存するフォルダです。ライブラリの自動バックアップもここに保存されます（拡張機能のフォルダとは別の場所を選んでください）。</p>
         <div class="row"><span>保存先</span><b id="exportDirName" class="export-dir"></b></div>
         <div class="row"><button type="button" id="btnExportDir" class="small primary">フォルダを選ぶ</button> <button type="button" id="btnExportDirReset" class="small">既定に戻す</button></div>
       </div>
@@ -310,8 +322,8 @@
       <h2>🔒 Pro版の機能です</h2>
       <p>「<b id="proFeature"></b>」は、Pro版（有料）でご利用いただけます。</p>
       <ul>
-        <li>MIDI出力（ほかの楽譜ソフト・演奏ソフトで開ける .mid ファイル）</li>
-        <li>MusicXML出力（MuseScore などの楽譜ソフトで、楽譜として開ける .musicxml ファイル）</li>
+        <li>MIDIファイルに書き出す（ほかの楽譜ソフト・演奏ソフトで開ける .mid ファイル）</li>
+        <li>MusicXMLファイルに書き出す（MuseScore などの楽譜ソフトで、楽譜として開ける .musicxml ファイル）</li>
         <li>ライブラリへの保存（複数の楽譜を保存して、あとから開く）</li>
         <li>ファイルへの書き出し・ファイルからの読み込み（MusicXML・MIDI・JSON）</li>
         <li>PDF の楽譜の読み込み（ページごとに画像にして解析）</li>
@@ -373,7 +385,7 @@
       <ul>
         <li>画像をドロップ／「＋ 画像」／Ctrl+V で貼り付け（複数ページ可・iPhoneのHEICも可）。Webページの画像はこの画面へドラッグ。</li>
         <li>「全ページを解析して1曲に」。黄色の ⚠ は要確認の小節です。音のチップをクリックして直せます。</li>
-        <li>MusicXML・MXL・MIDI は「読み込み」から直接開けます。</li>
+        <li>MusicXML・MXL・MIDI は「📁 ファイル ▾ → ファイルを開く」から直接開けます。</li>
       </ul>
 
       <h3>③ 練習</h3>
@@ -381,7 +393,9 @@
 
       <h3>保存について</h3>
       <ul>
-        <li>「保存」でこのブラウザ内のライブラリに入ります。ブラウザの閲覧データを消すと消えるので、大事な楽譜は「書き出し」でファイルにも残してください。</li>
+        <li>「保存」（または「📚 ライブラリ ▾ → ライブラリに保存」）で、このアプリの中のライブラリに入ります。パソコンのファイルにはなりません。ブラウザの閲覧データを消すと消えるので、大事な楽譜は「📁 ファイル ▾ → ライブラリ全体をバックアップ」でファイルにも残してください。</li>
+        <li>「書き出し先のフォルダ」（設定）を選んでおくと、保存のたびにライブラリ全体が自動でそのフォルダにバックアップされます（Windows版は選ばなくても「ドキュメント\Chopin the Ⅲ\バックアップ」に自動で保存）。</li>
+        <li>版を上げたときなどにライブラリが空になっていたら、「📁 ファイル ▾ → バックアップから戻す」で戻せます。</li>
         <li>保存先はブラウザと<b>開いた場所</b>ごとに別です（PC上のファイルとWeb公開版は別のライブラリになります）。</li>
       </ul>
 
@@ -493,13 +507,29 @@
   <dialog id="dlgLibrary" class="dlg wide">
     <form method="dialog">
       <h2>ライブラリ（保存した楽譜）</h2>
+      <p class="hint lib-where" title="ライブラリの楽譜は、この端末・このブラウザ（またはアプリ）の中だけに保存されています。版の上げ替え・パソコンの買い替えの前に「📁 ファイル ▾ → ライブラリ全体をバックアップ」をしてください">ⓘ <span id="libBackupInfo"></span></p>
       <div id="libList" class="lib-list"></div>
       <div class="dlg-actions">
+        <button type="button" id="btnLibBackup" title="ライブラリの全曲と設定を1つのファイルにまとめて保存します">💾 全体をバックアップ</button>
+        <button type="button" id="btnLibRestore" title="バックアップのファイルから全曲を戻します">↩ バックアップから戻す</button>
         <button value="close">閉じる</button>
       </div>
     </form>
   </dialog>
 
+
+  <dialog id="dlgRestore" class="dlg">
+    <form method="dialog">
+      <h2>バックアップから戻す</h2>
+      <p id="restoreText"></p>
+      <div class="dlg-actions">
+        <button value="overwrite" class="primary" title="ライブラリに同じ曲があれば、バックアップの内容で置き換えます">同じ曲は上書き</button>
+        <button value="both" title="同じ曲があっても、別の曲として両方残します">両方残す</button>
+        <button value="skip" title="ライブラリにすでにある曲は読み込みません">同じ曲は読み込まない</button>
+        <button value="cancel">やめる</button>
+      </div>
+    </form>
+  </dialog>
 
   <dialog id="dlgPhone" class="dlg">
     <form method="dialog">
@@ -2236,6 +2266,6 @@ def main():
 if __name__ == "__main__":
     main()
 </script>
-  <script src="js/main.js?v=1793616047990"></script>
+  <script src="js/main.js?v=1793618784647"></script>
 </body>
 </html>
