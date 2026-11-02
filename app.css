@@ -523,7 +523,7 @@ body.resizing, body.resizing * { cursor: row-resize !important; user-select: non
    スマホは横向き専用にしたため、高さ390px前後の画面でも使えるようにする。
    全部を1画面に詰めると楽譜の部分が0になるので、スマホ幅と同じく
    「楽譜と小節で1画面分 → 下へスクロールすると再生操作と鍵盤」の縦スクロール配置にする。 */
-@media (max-height: 560px) and (min-width: 641px) {
+@media (max-height: 560px) and (min-width: 641px) and (pointer: coarse) {
   html { height: auto; }
   body { height: auto; min-height: 100%; overflow-y: auto; overflow-x: hidden; font-size: 12px; }
   .topbar { flex: 0 0 auto; padding: 4px 8px; row-gap: 4px; }
@@ -628,7 +628,7 @@ body.rtl dialog code, body.rtl dialog pre, body.rtl dialog input, body.rtl .su-c
 .play-mini svg { display: block; }
 .play-mini:disabled { opacity: .5; }
 /* 下の画面（再生・鍵盤）: ふだんは小さめにして編集の画面を広く、再生中だけ元の大きさに */
-body.dock-compact .keyboard { height: var(--kb-ch, 64px); }
+body.dock-compact .keyboard { height: var(--kb-ch, 84px); }
 body.dock-compact .tl-loop-hint { display: none; }
 /* スマホ・タブレット: 再生中は下の画面だけを全画面で */
 body.dock-full .dock { position: fixed; inset: 0; z-index: 60; overflow: auto; display: flex; flex-direction: column; padding: 8px 10px max(10px, env(safe-area-inset-bottom)); }
@@ -650,7 +650,7 @@ body.dock-compact .transport { gap: 10px; padding-bottom: 2px; }
 body.dock-compact .kb-bar { padding: 2px 0 3px; gap: 10px; font-size: 11px; }
 body.dock-compact .dock button, body.dock-compact .dock .btn { padding-top: 2px; padding-bottom: 2px; }
 body.dock-compact .dock select, body.dock-compact .dock input:not([type=checkbox]):not([type=range]) { padding-top: 1px; padding-bottom: 1px; }
-body.dock-compact .keyboard { height: var(--kb-ch, 48px); }
+body.dock-compact .keyboard { height: var(--kb-ch, 84px); }
 /* 上のバー: 幅が足りない画面では文字と余白を小さくして1段に収める */
 @media (max-width: 1440px) and (min-width: 900px) {
   .topbar { padding: 5px 10px; gap: 4px; }
@@ -680,3 +680,9 @@ button.danger { color: #b3261e; }
 .acc-btn.on { background: var(--accent, #2b6cb0); color: #fff; border-color: transparent; }
 .key-mode { display: inline-flex; align-items: center; gap: 2px; }
 .key-mode button.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* 編集の五線の拡大・縮小（大きくしたときは横にスクロール） */
+.staff-scroll { overflow-x: auto; max-width: 100%; }
+.staff-pair .staff-wrap.zoomed { max-width: none; flex-basis: 100%; }
+.staff-zoom { display: inline-flex; align-items: center; margin-left: 6px; }
+.staff-zoom .zoom-val { min-width: 46px; font-variant-numeric: tabular-nums; }
