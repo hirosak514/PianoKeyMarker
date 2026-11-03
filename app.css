@@ -704,3 +704,5 @@ button.danger { color: #b3261e; }
 .staff-edit svg path.st-tie { fill: none !important; stroke-width: 1.7; stroke-linecap: round; }
 .staff-edit svg path.st-tie-R { stroke: #1f5fbf; }
 .staff-edit svg path.st-tie-L { stroke: #c0661a; }
+/* 五線の上の説明: 選ぶものによって文の長さが変わっても、五線の位置が上下に動かないように2行分を取っておく */
+.staff-head .staff-hint { display: block; min-height: 2.9em; }
