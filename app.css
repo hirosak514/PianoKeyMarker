@@ -700,3 +700,7 @@ button.danger { color: #b3261e; }
 .menu hr { border: 0; border-top: 1px solid #e3e6ec; margin: 4px 2px; }
 .btn-group.file-menus > .menu-wrap > .menu-btn { border-radius: 0; }
 .lib-where { margin: -4px 0 8px; font-size: 12px; cursor: help; }
+/* 編集の五線: 前の小節からタイで続いている音の弧 */
+.staff-edit svg path.st-tie { fill: none !important; stroke-width: 1.7; stroke-linecap: round; }
+.staff-edit svg path.st-tie-R { stroke: #1f5fbf; }
+.staff-edit svg path.st-tie-L { stroke: #c0661a; }
