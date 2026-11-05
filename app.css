@@ -711,3 +711,11 @@ button.danger { color: #b3261e; }
 .staff-edit svg path.st-tie-L { stroke: #c0661a; }
 /* 五線の上の説明: 選ぶものによって文の長さが変わっても、五線の位置が上下に動かないように2行分を取っておく */
 .staff-head .staff-hint { display: block; min-height: 2.9em; }
+/* 開く ▾ の「最近開いたファイル」と、上のバーの今のファイル名 */
+.menu .menu-label { font-size: 11px; color: #7a8090; padding: 6px 10px 2px; }
+.menu > .recent-box { display: flex; flex-direction: column; }
+.menu .recent-item { display: flex !important; flex-direction: column; align-items: flex-start; gap: 0; width: 100%; text-align: left; background: transparent; color: inherit; border: 0; border-radius: 5px; padding: 5px 10px !important; font-size: 13px !important; cursor: pointer; max-width: 340px; }
+.menu .recent-item:hover { background: #eef2f8; }
+.menu .recent-item .rn { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px; }
+.menu .recent-item .rt { font-size: 11px; color: #7a8090; }
+.cur-file { font-size: 11px; color: #aab2c4; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: default; }
