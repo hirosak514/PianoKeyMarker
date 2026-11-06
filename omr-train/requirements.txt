@@ -1,0 +1,7 @@
+verovio
+cairosvg
+opencv-python-headless
+numpy
+torch
+onnx
+onnxruntime
