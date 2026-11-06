@@ -719,3 +719,7 @@ button.danger { color: #b3261e; }
 .menu .recent-item .rn { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px; }
 .menu .recent-item .rt { font-size: 11px; color: #7a8090; }
 .cur-file { font-size: 11px; color: #aab2c4; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: default; }
+/* 編集画面の「✏ 編集 ON/OFF」（下の「音符を編集」のチェックと連動） */
+.edit-toggle { min-width: 92px; font-weight: 600; }
+.edit-toggle.on { background: #2f8f4e; color: #fff; border-color: #2f8f4e; }
+.edit-toggle:not(.on) { background: #eceff3; color: #5b6272; }
