@@ -159,6 +159,9 @@ def main():
     ap.add_argument('--eval-n', type=int, default=200, help='検証で読む枚数')
     ap.add_argument('--save-every', type=int, default=1000)
     ap.add_argument('--limit', type=int, default=None, help='（動作確認用）使う枚数の上限')
+    ap.add_argument('--extra', action='append', default=[], help='本物の楽譜から作ったデータ（omr.realdata の out/train）。何回でも指定できる')
+    ap.add_argument('--extra-repeat', type=int, default=20, help='本物の楽譜のデータを、1回りの中で何回ずつ使うか（数が少ないので多めに）')
+    ap.add_argument('--val-real', default=None, help='本物の楽譜の確かめ用（omr.realdata の out/val）。あれば、こちらの結果で best.pt を選ぶ')
     ap.add_argument('--d', type=int, default=256)
     ap.add_argument('--enc-layers', type=int, default=4)
     ap.add_argument('--dec-layers', type=int, default=6)
@@ -183,6 +186,14 @@ def main():
     train_items = read_labels(a.data, a.limit)
     val_items = read_labels(a.val, 400)
     print(f'学習用 {len(train_items)}枚 / 検証用 {len(val_items)}枚')
+    for ex in a.extra:
+        if os.path.exists(os.path.join(ex, 'labels.tsv')):
+            real = read_labels(ex)
+            train_items += real * a.extra_repeat
+            print(f'本物の楽譜 {len(real)}段（{ex}）を {a.extra_repeat}回ずつ使います')
+    real_val = read_labels(a.val_real) if a.val_real and os.path.exists(os.path.join(a.val_real, 'labels.tsv')) else []
+    if real_val:
+        print(f'本物の楽譜の確かめ用 {len(real_val)}段')
     ds = SysDataset(train_items, train=True)
     dl = DataLoader(ds, batch_sampler=WidthBatchSampler(ds.items, a.max_pixels), collate_fn=collate,
                     num_workers=a.workers, pin_memory=device.type == 'cuda', persistent_workers=a.workers > 0)
@@ -207,10 +218,12 @@ def main():
         model.load_state_dict(st['model'])
         opt.load_state_dict(st['opt'])
         step, best = st['step'], st.get('best', 1e9)
+        if st.get('best_kind', 'synth') != ('real' if real_val else 'synth'):
+            best = 1e9  # 比べる相手（練習楽譜／本物の楽譜）が変わったので、いちばん良い結果を選び直す
         print(f'続きから再開します（{step}歩目）')
 
     def save(path, extra=None):
-        d = {'model': model.state_dict(), 'opt': opt.state_dict(), 'step': step, 'best': best, 'cfg': cfg}
+        d = {'model': model.state_dict(), 'opt': opt.state_dict(), 'step': step, 'best': best, 'best_kind': 'real' if real_val else 'synth', 'cfg': cfg}
         if extra:
             d.update(extra)
         tmp = path + '.tmp'
@@ -247,10 +260,19 @@ def main():
                 print(f'== 検証: 記号の間違い {ser * 100:.2f}%  完全に正しい段 {ex * 100:.1f}%')
                 for g, p in smp:
                     print('  正解:', g, '\n  読み:', p)
+                rec = {'step': step, 'loss': loss_avg, 'ser': ser, 'exact': ex, 'time': time.time()}
+                score = ser
+                if real_val:
+                    rser, rex, rsmp = evaluate(model, real_val, device, a.eval_n, amp_dtype)
+                    print(f'== 本物の楽譜: 記号の間違い {rser * 100:.2f}%  完全に正しい段 {rex * 100:.1f}%')
+                    for g, p in rsmp[:1]:
+                        print('  正解:', g, '\n  読み:', p)
+                    rec.update({'real_ser': rser, 'real_exact': rex})
+                    score = rser
                 with open(os.path.join(a.out, 'log.jsonl'), 'a') as f:
-                    f.write(json.dumps({'step': step, 'loss': loss_avg, 'ser': ser, 'exact': ex, 'time': time.time()}) + '\n')
-                if ser < best:
-                    best = ser
+                    f.write(json.dumps(rec) + '\n')
+                if score < best:
+                    best = score
                     save(os.path.join(a.out, 'best.pt'))
                     print('  → いちばん良い結果として best.pt に保存しました')
             if step >= a.max_steps or time.time() >= t_end:
