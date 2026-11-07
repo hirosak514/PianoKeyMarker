@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chopin the Ⅲ</title>
-  <link rel="stylesheet" href="app.css?v=1793953828742">
+  <link rel="stylesheet" href="app.css?v=1794031192770">
 </head>
 <body>
   <header class="topbar">
@@ -185,9 +185,11 @@
         <option value="homr">homr（おすすめ、速い）</option>
         <option value="audiveris">Audiveris（印刷・PDF向け）</option>
         <option value="browser">ブラウザ内解析（準備不要、遅い）</option>
+        <option value="mine">自作エンジン（試験版）</option>
       </select></label>
       <div class="row" id="engineUrlRow"><span>補助プログラム</span><input id="optEngineUrl" size="26"> <button type="button" id="btnEngineTest" class="small">接続テスト</button></div>
       <label class="row chk"><input type="checkbox" id="optUseGpu"> ブラウザ内解析で、グラフィック機能（GPU）を使って速くする <span class="hint muted" id="gpuState"></span></label>
+      <p class="muted opt-note" id="myEngineNote" hidden>「自作エンジン（試験版）」は、このアプリのために一から学習させた読み取りAIです。補助プログラムは不要で、初回に約36MBのモデルをダウンロードします。ト音記号とヘ音記号の2段（大譜表）の楽譜向けで、まだ試験中のため、楽譜によっては読み違いが多いことがあります。</p>
       <p class="muted opt-note" id="browserEngineNote" hidden>「ブラウザ内解析」は、インストールや補助プログラムが不要な代わりに、初回に約160MBのモデルをダウンロードし、1ページの解析に数分かかります（拍子記号などは簡易推定です）。</p>
       <div class="row hint" id="engineStatus"></div>
       <h3>🤖 AIでの修正</h3>
@@ -2267,6 +2269,6 @@ def main():
 if __name__ == "__main__":
     main()
 </script>
-  <script src="js/main.js?v=1793953828742"></script>
+  <script src="js/main.js?v=1794031192770"></script>
 </body>
 </html>
