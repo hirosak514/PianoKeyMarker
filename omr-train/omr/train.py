@@ -168,7 +168,9 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     amp_dtype = None
     if device.type == 'cuda':
-        amp_dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
+        cap = torch.cuda.get_device_capability(0)
+        # GTX1080 など古い GPU（Pascal 以前）は半精度の計算がかえって遅いので使わない
+        amp_dtype = None if cap[0] < 7 else (torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16)
         torch.backends.cuda.matmul.allow_tf32 = True
         torch.backends.cudnn.allow_tf32 = True
     print('device:', device, torch.cuda.get_device_name(0) if device.type == 'cuda' else '', 'amp:', amp_dtype)
