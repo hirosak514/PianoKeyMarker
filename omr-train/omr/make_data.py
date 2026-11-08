@@ -25,7 +25,7 @@ def _work(args):
     except Exception:
         pass
     from .music import gen_system
-    from .render import render_clean, augment, to_model_input
+    from .render import render_clean, augment, to_model_input, add_neighbors
     seed = seed_base + idx
     random.seed(seed)
     np.random.seed(seed % (2 ** 32))
@@ -33,6 +33,8 @@ def _work(args):
         try:
             xml, toks = gen_system()
             img = render_clean(xml)
+            if random.random() < 0.35:
+                img = add_neighbors(img)
             if random.random() >= clean_ratio:
                 img = augment(img, strength=random.uniform(0.4, 1.0))
             img = to_model_input(img, HEIGHT)

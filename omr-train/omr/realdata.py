@@ -170,13 +170,19 @@ def stream_measures(part, staff_no, has_acc):
             if v not in voices:
                 voices[v] = []
                 order.append(v)
-            if el.find('time-modification') is not None:
-                tuplet = True
+            tm = el.find('time-modification')
+            t3 = False
+            if tm is not None:
+                an, nn = int(tm.findtext('actual-notes') or 0), int(tm.findtext('normal-notes') or 0)
+                if an * 2 == nn * 3:
+                    t3 = True  # 3連符・6連符（3:2）は t3 で書ける
+                else:
+                    tuplet = True  # 5連符など、まだ書けない連符
             dt, dots = dur_token(el, divisions)
             chord = el.find('chord') is not None
             if el.find('rest') is not None:
                 r = el.find('rest')
-                voices[v].append({'rest': True, 'full': r.get('measure') == 'yes', 'd': dt, 'dots': dots,
+                voices[v].append({'rest': True, 'full': r.get('measure') == 'yes', 'd': dt, 'dots': dots, 't3': t3,
                                   'dur': float(el.findtext('duration') or 0) / max(1, divisions)})
                 last_ev[v] = None
                 continue
@@ -192,7 +198,7 @@ def stream_measures(part, staff_no, has_acc):
             if chord and last_ev.get(v) is not None:
                 last_ev[v]['notes'].append(nt)
             else:
-                ev = {'rest': False, 'd': dt, 'dots': dots, 'notes': [nt]}
+                ev = {'rest': False, 'd': dt, 'dots': dots, 'notes': [nt], 't3': t3}
                 voices[v].append(ev)
                 last_ev[v] = ev
         # 記号に直す
@@ -210,7 +216,7 @@ def stream_measures(part, staff_no, has_acc):
                 continue
             for ev in evs:
                 if ev['rest']:
-                    toks += ['r', ev['d']] + ['.'] * min(2, ev['dots'])
+                    toks += ['r', ev['d']] + ['.'] * min(2, ev['dots']) + (['t3'] if ev['t3'] else [])
                     continue
                 notes = sorted(ev['notes'], key=lambda n: (n['oct'] * 7 + STEPS.index(n['step'])))
                 for n in notes:
@@ -226,6 +232,8 @@ def stream_measures(part, staff_no, has_acc):
                     toks.append(f"{n['step']}{n['oct']}")
                 toks.append(ev['d'])
                 toks += ['.'] * min(2, ev['dots'])
+                if ev['t3']:
+                    toks.append('t3')
                 if any(n['tie_start'] for n in notes):
                     toks.append('~')
         out.append({'tokens': toks, 'clef': clefs.get(num, 'clef:G2' if num == 1 else 'clef:F4'), 'fifths': fifths,
@@ -422,7 +430,7 @@ def main():
         used = 0
         for k, ((pname, j, x), (s, e, diff)) in enumerate(zip(crops, al)):
             ok = diff <= a.max_diff and not any(m['tuplet'] for m in measures[s:e])
-            why = '' if ok else ('3連符など（まだ書けない記号）' if diff <= a.max_diff else '読みとかけ離れている')
+            why = '' if ok else ('5連符など（まだ書けない記号）' if diff <= a.max_diff else '読みとかけ離れている')
             # 確かめ用: 曲が4曲以上なら4曲に1曲をまるごと、少なければ5段に1段
             gidx = total['train'] + total['val'] + total['skip']
             sub = 'val' if (len(songs) >= 4 and si % 4 == 3) or (len(songs) < 4 and gidx % 5 == 4) else 'train'

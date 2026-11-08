@@ -144,6 +144,24 @@ def evaluate(model, items, device, n=200, amp_dtype=None):
     return errs / max(1, tot), exact / max(1, len(ds)), samples
 
 
+def load_expanding(model, sd):
+    """前の版の重みを読み込む。記号の数が増えた所（入口の embedding・出口の層）は、ある分だけ写す"""
+    own = model.state_dict()
+    n_new = 0
+    for k, v in sd.items():
+        if k not in own:
+            continue
+        if own[k].shape == v.shape:
+            own[k] = v
+        elif own[k].dim() == v.dim() and all(a >= b for a, b in zip(own[k].shape, v.shape)):
+            sl = tuple(slice(0, b) for b in v.shape)
+            own[k][sl] = v
+            n_new += 1
+    model.load_state_dict(own)
+    if n_new:
+        print(f'記号が増えた層 {n_new}個は、増えた分だけ新しく学びます')
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--data', required=True)
@@ -162,6 +180,7 @@ def main():
     ap.add_argument('--extra', action='append', default=[], help='本物の楽譜から作ったデータ（omr.realdata の out/train）。何回でも指定できる')
     ap.add_argument('--extra-repeat', type=int, default=20, help='本物の楽譜のデータを、1回りの中で何回ずつ使うか（数が少ないので多めに）')
     ap.add_argument('--val-real', default=None, help='本物の楽譜の確かめ用（omr.realdata の out/val）。あれば、こちらの結果で best.pt を選ぶ')
+    ap.add_argument('--init-from', default=None, help='最初の重みをここから取る（前の版の best.pt）。記号が増えていても使える。続きから再開するとき（--out に last.pt があるとき）は使わない')
     ap.add_argument('--d', type=int, default=256)
     ap.add_argument('--enc-layers', type=int, default=4)
     ap.add_argument('--dec-layers', type=int, default=6)
@@ -213,6 +232,10 @@ def main():
 
     step, best = 0, 1e9
     ck = os.path.join(a.out, 'last.pt')
+    if a.init_from and not os.path.exists(ck):
+        st = torch.load(a.init_from, map_location=device)
+        load_expanding(model, st['model'])
+        print(f'前の AI（{a.init_from}・{st.get("step")}歩目）から学習を始めます')
     if os.path.exists(ck):
         st = torch.load(ck, map_location=device)
         model.load_state_dict(st['model'])

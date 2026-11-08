@@ -51,6 +51,23 @@ def crop_content(img, pad=None):
     return img[y0:y1, x0:x1]
 
 
+def add_neighbors(img):
+    """ページから1段を切り出したときのように、上下に隣の段のはしを少し写り込ませる"""
+    h, w = img.shape
+    out = [img]
+    if random.random() < 0.8:  # 上（前の段の下の方）
+        th = int(h * random.uniform(0.06, 0.3))
+        strip = np.roll(img[h - th:], random.randint(-w // 3, w // 3), axis=1)
+        gap = np.full((int(h * random.uniform(0, 0.08)), w), 255, np.uint8)
+        out = [strip, gap] + out
+    if random.random() < 0.8:  # 下（次の段の上の方）
+        th = int(h * random.uniform(0.06, 0.3))
+        strip = np.roll(img[:th], random.randint(-w // 3, w // 3), axis=1)
+        gap = np.full((int(h * random.uniform(0, 0.08)), w), 255, np.uint8)
+        out = out + [gap, strip]
+    return np.vstack(out)
+
+
 def augment(img, strength=1.0):
     """紙の写真らしくする: 傾き・台形・ゆがみ・影・ぼけ・ノイズ・JPEG"""
     h, w = img.shape

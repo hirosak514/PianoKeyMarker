@@ -10,7 +10,10 @@ KEYS = [f'key:{k}' for k in range(-7, 8)]
 TIMES = ['time:2/4', 'time:3/4', 'time:4/4', 'time:5/4', 'time:6/4', 'time:2/2', 'time:3/2',
          'time:3/8', 'time:6/8', 'time:9/8', 'time:12/8']
 
-TOKENS = SPECIAL + STRUCT + DURS + ACCS + PITCHES + CLEFS + KEYS + TIMES
+# 2版目で足した記号（最後に足す。前の番号は変えない）
+EXTRA = ['t3']  # 3連符・6連符（3:2 の比）。長さの記号の後に付ける
+
+TOKENS = SPECIAL + STRUCT + DURS + ACCS + PITCHES + CLEFS + KEYS + TIMES + EXTRA
 INDEX = {t: i for i, t in enumerate(TOKENS)}
 PAD, BOS, EOS, UNK = 0, 1, 2, 3
 
